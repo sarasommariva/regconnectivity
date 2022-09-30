@@ -1,0 +1,12 @@
+Obiettivo: provo a creare una 'documentazione' senza il pacchetto
+
+Creo folder docs e lancio sphinx-quickstart
+
+Copio il Makefile di transfreq (che sembra avere più opzioni)
+
+Creo la cartlla examples
+
+
+TODO:
+- Creare gli esempi con delle funzioni locali
+- Creare un API? 
