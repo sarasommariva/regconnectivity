@@ -56,7 +56,7 @@ html_theme_options = {
     'navbar_links': [
 #        ("API", "api"),
 	("Examples", "auto_examples/index"),
-#	("Reproducing paper results", "auto_paper/index"),
+	("Advanced analysis", "auto_paper/index"),
         ("GitHub", "https://github.com/sarasommariva/regconnectivity", True)
     ],
     'bootswatch_theme': "cerulean"

@@ -1,7 +1,14 @@
+"""
+Reproducing paper plots
+=======================
+
+Scrivere commenti....
+"""
+
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Reproducing paper results
+# # 
 
 # In[1]:
 

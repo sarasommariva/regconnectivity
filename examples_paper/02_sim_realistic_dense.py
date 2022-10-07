@@ -3,7 +3,7 @@
 
 """
 Part 2: Generate sensor level recordings and compute optimal parameters
-=============================
+=======================================================================
 
 """
 import os.path as op

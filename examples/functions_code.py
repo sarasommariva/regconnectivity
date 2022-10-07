@@ -1,3 +1,10 @@
+"""
+Main functions
+==============
+
+Scrivere commenti....
+"""
+
 #!/usr/bin/env python
 # coding: utf-8
 

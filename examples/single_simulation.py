@@ -1,7 +1,14 @@
+"""
+Single run
+==========
+
+Simulate sensor level MEG configuration and compute optimal parameters for neural activity and connectivity estimation
+"""
+
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Simulate sensor level MEG configuration and compute optimal parameters for neural activity and connectivity estimation
+# # 
 
 # In[1]:
 
