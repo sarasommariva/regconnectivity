@@ -1,0 +1,18 @@
+# Sphinx documentation
+docs/_build
+docs/auto_examples/
+docs/auto_paper/
+docs/modules/generated/
+docs/datasets/generated/
+docs/generated/
+
+# Distribution / packaging
+*.egg-info/
+
+# Pycharm
+.idea
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+
