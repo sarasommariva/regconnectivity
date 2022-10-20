@@ -22,7 +22,7 @@ from scipy import optimize, signal
 import functions_code as myf
 from mne import (read_forward_solution, convert_forward_solution, 
                  pick_types_forward)
-import visbrain
+
 mne.viz.set_3d_backend("notebook")
 get_ipython().run_line_magic('matplotlib', 'notebook')
 

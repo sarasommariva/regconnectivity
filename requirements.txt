@@ -1,8 +1,4 @@
-math
 matplotlib==3.5.1
 mne
-numpy==1.22.3
-os-sys
-pandas==1.4.2
-scipy==1.8.0
-time
+numpy==1.21.6
+scipy==1.7.3

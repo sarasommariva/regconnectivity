@@ -12,12 +12,12 @@ Scrivere commenti....
 
 # In[1]:
 
-
-import matplotlib.pylab as pylab
 import numpy as np
 import math
 import os.path as op
 import matplotlib.pyplot as plt
+import matplotlib.pylab as pylab
+
 get_ipython().run_line_magic('matplotlib', 'notebook')
 target  = '..'
 
