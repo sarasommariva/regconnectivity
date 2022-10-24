@@ -165,22 +165,30 @@ fig, ax = plt.subplots(1,3, tight_layout=True, figsize=(10,4))
 shrink = 0.5
 origin='lower'
 cmap='jet'
-hist, xedges, yedges = np.histogram2d(np.log10(np.reshape(lambda_wpli,(-1,))),np.log10(np.reshape(lambda_psds,(-1,))) , bins=20, )
+hist, yedges, xedges = np.histogram2d(np.log10(np.reshape(lambda_psds,(-1,))) ,np.log10(np.reshape(lambda_wpli,(-1,))), bins=[np.arange(-3,5.5,0.4),np.arange(-3,5.5,0.4)] )
 im1 = ax[0].imshow(hist,extent=[xedges[0],xedges[-1],yedges[0],yedges[-1]], cmap=cmap, origin=origin)
 fig.colorbar(im1, ax=ax[0], location='right', shrink=shrink)
 ax[0].set_xlabel(r'log$_{10}(\lambda_{wPLI})$')
 ax[0].set_ylabel(r'log$_{10}(\lambda_{S})$')
+ax[0].set_xticks([-2,0,2,4])
+ax[0].set_yticks([-2,0,2,4])
 
-hist, xedges, yedges = np.histogram2d(np.log10(np.reshape(lambda_wpli,(-1,))),np.log10(np.reshape(lambda_imcoh,(-1,))) , bins=20, )
+
+hist, yedges, xedges = np.histogram2d(np.log10(np.reshape(lambda_imcoh,(-1,))) , np.log10(np.reshape(lambda_wpli,(-1,))),bins=[np.arange(-3,5.5,0.4),np.arange(-3,5.5,0.4)])
 im2 = ax[1].imshow(hist,extent=[xedges[0],xedges[-1],yedges[0],yedges[-1]], cmap=cmap, origin=origin)
 fig.colorbar(im2, ax=ax[1], location='right', shrink=shrink)
 ax[1].set_xlabel(r'log$_{10}(\lambda_{wPLI})$')
 ax[1].set_ylabel(r'log$_{10}(\lambda_{imCOH})$')
-
-hist, xedges, yedges = np.histogram2d(np.log10(np.reshape(lambda_wpli,(-1,))),np.log10(np.reshape(lambda_ciplv,(-1,))), bins=20)
+ax[1].set_xticks([-2,0,2,4])
+ax[1].set_yticks([-2,0,2,4])
+          
+hist, yedges, xedges = np.histogram2d(np.log10(np.reshape(lambda_ciplv,(-1,))),np.log10(np.reshape(lambda_wpli,(-1,))), bins=[np.arange(-3,5.5,0.4),np.arange(-3,5.5,0.4)])
 im3 = ax[2].imshow(hist, cmap=cmap, extent=[xedges[0],xedges[-1],yedges[0],yedges[-1]], origin=origin)
+fig.colorbar(im3, ax=ax[2], location='right', shrink=shrink)
 ax[2].set_xlabel(r'log$_{10}(\lambda_{wPLI})$')
 ax[2].set_ylabel(r'log$_{10}(\lambda_{ciPLV})$')
+ax[2].set_xticks([-2,0,2,4])
+ax[2].set_yticks([-2,0,2,4])
 
 fig.colorbar(im3, ax=ax[2], location='right', shrink=shrink)
 
@@ -201,24 +209,28 @@ for i_snr in range(N_snr):
     lambda_ciplv = tested_par[np.argmax(-opt_par['conn'][:,:,:,:,:,i_snr,2,:],axis=-1)]*opt_par['tc'][:,:,:,:,:,i_snr,0]
     lambda_wpli = tested_par[np.argmax(-opt_par['conn'][:,:,:,:,:,i_snr,3,:],axis=-1)]*opt_par['tc'][:,:,:,:,:,i_snr,0]
 
-    hist, xedges, yedges = np.histogram2d(np.log10(np.reshape(lambda_wpli,(-1,))),np.log10(np.reshape(lambda_psds,(-1,))) , bins=20, )
+    hist, yedges, xedges = np.histogram2d(np.log10(np.reshape(lambda_psds,(-1,))) ,np.log10(np.reshape(lambda_wpli,(-1,))), 
+                                          bins=np.arange(-3,5.5,0.4),np.arange(-3,5.5,0.4)] )
     im1 = ax[i_snr,0].imshow(hist,extent=[xedges[0],xedges[-1],yedges[0],yedges[-1]], cmap=cmap, origin=origin)
     fig.colorbar(im1, ax=ax[i_snr,0], location='right', shrink=shrink)
     ax[i_snr,0].set_xlabel(r'log$_{10}(\lambda_{wPLI})$')
     ax[i_snr,0].set_ylabel(r'log$_{10}(\lambda_{S})$')
 
-    hist, xedges, yedges = np.histogram2d(np.log10(np.reshape(lambda_wpli,(-1,))),np.log10(np.reshape(lambda_imcoh,(-1,))) , bins=20, )
+    hist, yedges, xedges = np.histogram2d(np.log10(np.reshape(lambda_imcoh,(-1,))) ,np.log10(np.reshape(lambda_wpli,(-1,))),
+                                          bins=np.arange(-3,5.5,0.4),np.arange(-3,5.5,0.4)] )
     im2 = ax[i_snr,1].imshow(hist,extent=[xedges[0],xedges[-1],yedges[0],yedges[-1]], cmap=cmap, origin=origin)
     fig.colorbar(im2, ax=ax[i_snr,1], location='right', shrink=shrink)
     ax[i_snr,1].set_xlabel(r'log$_{10}(\lambda_{wPLI})$')
     ax[i_snr,1].set_ylabel(r'log$_{10}(\lambda_{imCOH})$')
 
-    hist, xedges, yedges = np.histogram2d(np.log10(np.reshape(lambda_wpli,(-1,))),np.log10(np.reshape(lambda_ciplv,(-1,))), bins=20,)
+    hist, yedges, xedges = np.histogram2d(np.log10(np.reshape(lambda_ciplv,(-1,))) ,np.log10(np.reshape(lambda_wpli,(-1,))), 
+                                          bins=np.arange(-3,5.5,0.4),np.arange(-3,5.5,0.4)] )
     im3 = ax[i_snr,2].imshow(hist, cmap=cmap, extent=[xedges[0],xedges[-1],yedges[0],yedges[-1]], origin=origin)
+    fig.colorbar(im3, ax=ax[i_snr,2], location='right', shrink=shrink)
     ax[i_snr,2].set_xlabel(r'log$_{10}(\lambda_{wPLI})$')
     ax[i_snr,2].set_ylabel(r'log$_{10}(\lambda_{ciPLV})$')
 
-    fig.colorbar(im3, ax=ax[i_snr,2], location='right', shrink=shrink)
+    
     
     ax[i_snr,1].set_title(r'SNR='+str(np.round(SNR_val[i_snr],decimals=1))+'\n')
     
