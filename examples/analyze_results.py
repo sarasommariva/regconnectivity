@@ -13,12 +13,11 @@ Scrivere commenti....
 # In[1]:
 
 import numpy as np
-import math
 import os.path as op
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pylab
 
-get_ipython().run_line_magic('matplotlib', 'notebook')
+#get_ipython().run_line_magic('matplotlib', 'notebook')
 target  = '..'
 
 
@@ -210,21 +209,21 @@ for i_snr in range(N_snr):
     lambda_wpli = tested_par[np.argmax(-opt_par['conn'][:,:,:,:,:,i_snr,3,:],axis=-1)]*opt_par['tc'][:,:,:,:,:,i_snr,0]
 
     hist, yedges, xedges = np.histogram2d(np.log10(np.reshape(lambda_psds,(-1,))) ,np.log10(np.reshape(lambda_wpli,(-1,))), 
-                                          bins=np.arange(-3,5.5,0.4),np.arange(-3,5.5,0.4)] )
+                                          bins=[np.arange(-3,5.5,0.4),np.arange(-3,5.5,0.4)] )
     im1 = ax[i_snr,0].imshow(hist,extent=[xedges[0],xedges[-1],yedges[0],yedges[-1]], cmap=cmap, origin=origin)
     fig.colorbar(im1, ax=ax[i_snr,0], location='right', shrink=shrink)
     ax[i_snr,0].set_xlabel(r'log$_{10}(\lambda_{wPLI})$')
     ax[i_snr,0].set_ylabel(r'log$_{10}(\lambda_{S})$')
 
     hist, yedges, xedges = np.histogram2d(np.log10(np.reshape(lambda_imcoh,(-1,))) ,np.log10(np.reshape(lambda_wpli,(-1,))),
-                                          bins=np.arange(-3,5.5,0.4),np.arange(-3,5.5,0.4)] )
+                                          bins=[np.arange(-3,5.5,0.4),np.arange(-3,5.5,0.4)] )
     im2 = ax[i_snr,1].imshow(hist,extent=[xedges[0],xedges[-1],yedges[0],yedges[-1]], cmap=cmap, origin=origin)
     fig.colorbar(im2, ax=ax[i_snr,1], location='right', shrink=shrink)
     ax[i_snr,1].set_xlabel(r'log$_{10}(\lambda_{wPLI})$')
     ax[i_snr,1].set_ylabel(r'log$_{10}(\lambda_{imCOH})$')
 
     hist, yedges, xedges = np.histogram2d(np.log10(np.reshape(lambda_ciplv,(-1,))) ,np.log10(np.reshape(lambda_wpli,(-1,))), 
-                                          bins=np.arange(-3,5.5,0.4),np.arange(-3,5.5,0.4)] )
+                                          bins=[np.arange(-3,5.5,0.4),np.arange(-3,5.5,0.4)] )
     im3 = ax[i_snr,2].imshow(hist, cmap=cmap, extent=[xedges[0],xedges[-1],yedges[0],yedges[-1]], origin=origin)
     fig.colorbar(im3, ax=ax[i_snr,2], location='right', shrink=shrink)
     ax[i_snr,2].set_xlabel(r'log$_{10}(\lambda_{wPLI})$')
