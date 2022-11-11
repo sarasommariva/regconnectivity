@@ -1,3 +1,4 @@
+conpy
 matplotlib==3.5.1
 mne
 numpy==1.21.6
