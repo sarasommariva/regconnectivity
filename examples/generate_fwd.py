@@ -1,4 +1,6 @@
 """
+Title of the example
+===========================
 Compute forward and cortical distances
 """
 from scipy import sparse
@@ -67,7 +69,7 @@ trans = data_path + '/MEG/sample/sample_audvis_raw-trans.fif'
 
 info = mne.io.read_info(raw_fname)
 
-src = mne.setup_source_space(subject, spacing='all', add_dist='patch',
+src = mne.setup_source_space(subject, spacing='oct6', add_dist='patch',
                              subjects_dir=subjects_dir)
 
 
