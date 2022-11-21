@@ -372,7 +372,7 @@ i_conn = 1  # imCoh
 # i_conn = 3  # wpli
 
 # regularization parameter for the selected connectivity meteric
-lamC = lambdas[np.argmin(AUC_conn[:, 0])]*lamX
+lamC = lambdas[np.argmin(AUC_conn[:, i_conn])]*lamX
 
 # estimated neural activity with the optimal parameters lamX and lamC
 X_lamX = ((G.T).dot(np.linalg.inv(G.dot(G.T)+lamX*np.eye(M)))).dot(Y)
@@ -385,8 +385,9 @@ X_lamC = ((G.T).dot(np.linalg.inv(G.dot(G.T)+lamC*np.eye(M)))).dot(Y)
 
 hemi = 'both'
 # plot simulated neural activty
-stc = mne.SourceEstimate(np.linalg.norm(X, axis=1), vertices=vertno, tmin=0,
-                         tstep=1, subject=subject)
+stc = mne.SourceEstimate(np.linalg.norm(X, axis=1) /
+                         np.max(np.linalg.norm(X, axis=1)),
+                         vertices=vertno, tmin=0, tstep=1, subject=subject)
 title = 'Simulated neural activtiy'
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  views='frontal', hemi=hemi, subjects_dir=subject_dir,
@@ -395,8 +396,9 @@ brain.add_text(0.1, 0.9, title, 'title', font_size=14)
 
 
 # plot esimated neural activtiy (estimated using lamX)
-stc = mne.SourceEstimate(np.linalg.norm(X_lamX, axis=1), vertices=vertno,
-                         tmin=0, tstep=1, subject=subject)
+stc = mne.SourceEstimate(np.linalg.norm(X_lamX, axis=1) /
+                         np.max(np.linalg.norm(X_lamX, axis=1)),
+                         vertices=vertno, tmin=0, tstep=1, subject=subject)
 title = r'Estimated  neural activtiy (using $\lambda_X$)'
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  views='frontal', hemi=hemi, subjects_dir=subject_dir,
@@ -405,8 +407,9 @@ brain.add_text(0.1, 0.9, title, 'title', font_size=14)
 
 
 # plot esimated neural activtiy  (estimated using lamC)
-stc = mne.SourceEstimate(np.linalg.norm(X_lamC, axis=1), vertices=vertno,
-                         tmin=0, tstep=1, subject=subject)
+stc = mne.SourceEstimate(np.linalg.norm(X_lamC, axis=1) /
+                         np.max(np.linalg.norm(X_lamC, axis=1)),
+                         vertices=vertno, tmin=0, tstep=1, subject=subject)
 title = r'Estimated neural activtiy (using $\lambda_{'+conn_names[i_conn]+'}$)'
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  views='frontal', hemi=hemi, subjects_dir=subject_dir,
@@ -461,8 +464,8 @@ conn = [conn_true, conn_lamX, conn_lamC]
 
 
 # plot simulate brain connectivity
-stc = mne.SourceEstimate(conn_true, vertices=vertno, tmin=0, tstep=1,
-                         subject=subject)
+stc = mne.SourceEstimate(conn_true/np.max(conn_true), vertices=vertno, tmin=0,
+                         tstep=1, subject=subject)
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  hemi=hemi, subjects_dir=subject_dir, time_viewer=False,
                  colorbar=True)
@@ -471,8 +474,8 @@ brain.add_text(0.1, 0.9, title, 'title', font_size=14)
 
 
 # plot estimated brain connectivity (estimated using lamX)
-stc = mne.SourceEstimate(conn_lamX, vertices=vertno, tmin=0, tstep=1,
-                         subject=subject)
+stc = mne.SourceEstimate(conn_lamX/np.max(conn_lamX), vertices=vertno, tmin=0,
+                         tstep=1, subject=subject)
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  hemi=hemi, subjects_dir=subject_dir, time_viewer=False,
                  colorbar=True)
@@ -481,8 +484,8 @@ brain.add_text(0.1, 0.9, title, 'title', font_size=14)
 
 
 # plot estimated brain connectivity (estimated using lamc)
-stc = mne.SourceEstimate(conn_lamC, vertices=vertno, tmin=0, tstep=1,
-                         subject=subject)
+stc = mne.SourceEstimate(conn_lamC/np.max(conn_lamC), vertices=vertno, tmin=0,
+                         tstep=1, subject=subject)
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  hemi=hemi, subjects_dir=subject_dir, time_viewer=False,
                  colorbar=True)

@@ -13,6 +13,7 @@ import pooch
 import matplotlib.pyplot as plt
 import math
 import funcs_single_sim as funcs
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 target = '..'
 
 
@@ -234,7 +235,7 @@ screenshot = brain.screenshot()
 brain.close()
 screenshot4 = crop_image(screenshot)
 
-fig, ax = plt.subplots(1, 4, figsize=(8, 3))
+fig, ax = plt.subplots(1, 5, figsize=(8, 3))
 ax[0].imshow(screenshot1)
 ax[0].axis('off')
 ax[0].set_title('True')
@@ -251,9 +252,13 @@ ax[3].imshow(screenshot4)
 ax[3].axis('off')
 ax[3].set_title(r'$\lambda_{{wPLI}}$')
 
+ax[4].axis('off')
+divider = make_axes_locatable(ax[4])
+cax = divider.append_axes('left', size='5%', pad='0%')
+cbar = mne.viz.plot_brain_colorbar(cax, clim, 'hot', bgcolor='0.5')
+
 fig.suptitle('Neural activity')
 plt.tight_layout()
-plt.savefig('prova1.pdf')
 
 ###############################################################################
 # Plot cross-power spectrum
@@ -306,7 +311,7 @@ screenshot = brain.screenshot()
 brain.close()
 screenshot3 = crop_image(screenshot)
 
-fig, ax = plt.subplots(1, 3, figsize=(6, 3))
+fig, ax = plt.subplots(1, 4, figsize=(6, 3))
 ax[0].imshow(screenshot1)
 ax[0].axis('off')
 ax[0].set_title('True')
@@ -319,9 +324,13 @@ ax[2].imshow(screenshot3)
 ax[2].axis('off')
 ax[2].set_title(r'$\lambda_{{CPS}}$')
 
+ax[3].axis('off')
+divider = make_axes_locatable(ax[3])
+cax = divider.append_axes('left', size='5%', pad='0%')
+cbar = mne.viz.plot_brain_colorbar(cax, clim, 'hot', bgcolor='0.5')
+
 fig.suptitle('Cross-power spectrum')
 plt.tight_layout()
-plt.savefig('prova2.pdf')
 
 ###############################################################################
 # Plot wPLI
@@ -375,7 +384,7 @@ screenshot = brain.screenshot()
 brain.close()
 screenshot3 = crop_image(screenshot)
 
-fig, ax = plt.subplots(1, 3, figsize=(6, 3))
+fig, ax = plt.subplots(1, 4, figsize=(6, 3))
 ax[0].imshow(screenshot1)
 ax[0].axis('off')
 ax[0].set_title('True')
@@ -388,10 +397,13 @@ ax[2].imshow(screenshot3)
 ax[2].axis('off')
 ax[2].set_title(r'$\lambda_{{wPLI}}$')
 
+ax[3].axis('off')
+divider = make_axes_locatable(ax[3])
+cax = divider.append_axes('left', size='5%', pad='0%')
+cbar = mne.viz.plot_brain_colorbar(cax, clim, 'hot', bgcolor='0.5')
+
 fig.suptitle('Weighted phase lax index')
 plt.tight_layout()
-plt.savefig('prova3.pdf')
-
 
 ###############################################################################
 # Plot imCOH
@@ -437,14 +449,14 @@ stc = mne.SourceEstimate(np.mean(imcoh_lam_imcoh, axis=0) /
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  clim=clim, views=views, size=size, hemi=hemi,
                  subjects_dir=subject_dir, time_viewer=False, colorbar=False,
-                 background='white', sdd_data_kwargs=dict(
+                 background='white', add_data_kwargs=dict(
                      colorbar_kwargs=dict(label_font_size=40)))
 brain.show_view(azimuth=-90, elevation=10, distance=600, roll=roll)
 screenshot = brain.screenshot()
 brain.close()
 screenshot3 = crop_image(screenshot)
 
-fig, ax = plt.subplots(1, 3, figsize=(6, 3))
+fig, ax = plt.subplots(1, 4, figsize=(6, 3))
 ax[0].imshow(screenshot1)
 ax[0].axis('off')
 ax[0].set_title('True')
@@ -457,9 +469,13 @@ ax[2].imshow(screenshot3)
 ax[2].axis('off')
 ax[2].set_title(r'$\lambda_{{imCOH}}$')
 
+ax[3].axis('off')
+divider = make_axes_locatable(ax[3])
+cax = divider.append_axes('left', size='5%', pad='0%')
+cbar = mne.viz.plot_brain_colorbar(cax, clim, 'hot', bgcolor='0.5')
+
 fig.suptitle('Imaginary part of coherence')
 plt.tight_layout()
-plt.savefig('prova4.pdf')
 
 ###############################################################################
 # Plot ciPLV
@@ -512,7 +528,7 @@ screenshot = brain.screenshot()
 brain.close()
 screenshot3 = crop_image(screenshot)
 
-fig, ax = plt.subplots(1, 3, figsize=(6, 3))
+fig, ax = plt.subplots(1, 4, figsize=(6, 3))
 ax[0].imshow(screenshot1)
 ax[0].axis('off')
 ax[0].set_title('True')
@@ -525,6 +541,10 @@ ax[2].imshow(screenshot3)
 ax[2].axis('off')
 ax[2].set_title(r'$\lambda_{{ciPLV}}$')
 
+ax[3].axis('off')
+divider = make_axes_locatable(ax[3])
+cax = divider.append_axes('left', size='5%', pad=0.2)
+cbar = mne.viz.plot_brain_colorbar(cax, clim, 'hot', bgcolor='0.5')
+
 fig.suptitle('Corrected imaginary part of phase locking value ')
 plt.tight_layout()
-plt.savefig('prova5.pdf')
