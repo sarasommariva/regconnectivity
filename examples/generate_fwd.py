@@ -1,5 +1,5 @@
 """
-Generate fwd
+Generate forward
 ===========================
 Compute forward and cortical distances
 """

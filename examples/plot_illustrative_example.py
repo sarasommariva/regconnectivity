@@ -1,8 +1,9 @@
 """
-Reproducing paper plots
-=======================
+Reproducing plots of the illustrative example of the paper
+==========================================================
 
-Code for reproducing the plot that are present in the paper
+Code for reproducing the plots related to the illustrative example presented
+in the paper
 """
 
 import numpy as np

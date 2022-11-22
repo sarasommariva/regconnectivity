@@ -2,10 +2,11 @@
 # coding: utf-8
 
 """
-Reproducing paper plots
-=======================
+Reproducing plots of the paper related to the 180,000 simulated MEG data
+========================================================================
 
-Code for reproducing the plot that are present in the paper
+Code for reproducing the plots that are present in the paper that refer to the
+108,000 simulated MEG sensor level recordings
 """
 
 import numpy as np

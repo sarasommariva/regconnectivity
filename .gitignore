@@ -5,7 +5,9 @@ docs/auto_paper/
 docs/modules/generated/
 docs/datasets/generated/
 docs/generated/
-
+*.pdf
+/data
+.ipynb_checkpoints
 # Distribution / packaging
 *.egg-info/
 

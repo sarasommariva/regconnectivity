@@ -2,8 +2,8 @@
 # coding: utf-8
 
 """
-Single run
-==========
+Single simulation and parameters computation
+============================================
 This example shows how to simulate a sensor level MEG configuration and compute
 optimal parameters for neural activity and connectivity estimation
 """
@@ -142,14 +142,17 @@ p1_locs, p2_locs = funcs.gen_patches_sources(cortico_dist, r, seed_loc)
 
 ###############################################################################
 # Plot patches on the brain
+# Warning: note that plot perspective might not be optimal, when downloading
+# the codes plots are interavtive and perspectives can be changed
 
+view = 'axial'
 X = np.zeros((G.shape[1]))
 stc = mne.SourceEstimate(X, vertices=vertno, tmin=0, tstep=1, subject=subject)
 
 hemi = 'both'
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  hemi=hemi, subjects_dir=subject_dir, time_viewer=False,
-                 colorbar=True)
+                 colorbar=True, views=view)
 
 nv_lh = stc.vertices[0].shape[0]
 for idx, loc in enumerate([loc for loc in p1_locs]):
@@ -361,6 +364,8 @@ parameters['FPF_conn'] = FPF_conn.copy()
 
 ###############################################################################
 # Plot results
+# Warning: note that plot perspective might not be optimal, when downloading
+# the codes plots are interavtive and perspectives can be changed
 
 # connectivity measures that can be plotted
 conn_names = ['Cross-power spectrum', 'imCoh', 'ciPLV', 'wPLI']
@@ -382,6 +387,8 @@ X_lamC = ((G.T).dot(np.linalg.inv(G.dot(G.T)+lamC*np.eye(M)))).dot(Y)
 ###############################################################################
 # Plot simulated and estimated neural activity (norm along time of the absolute
 # value)
+# Warning: note that plot perspective might not be optimal, when downloading
+# the codes plots are interavtive and perspectives can be changed
 
 hemi = 'both'
 # plot simulated neural activty
@@ -390,10 +397,10 @@ stc = mne.SourceEstimate(np.linalg.norm(X, axis=1) /
                          vertices=vertno, tmin=0, tstep=1, subject=subject)
 title = 'Simulated neural activtiy'
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
-                 views='frontal', hemi=hemi, subjects_dir=subject_dir,
+                 views=view, hemi=hemi, subjects_dir=subject_dir,
                  time_viewer=False, colorbar=True)
 brain.add_text(0.1, 0.9, title, 'title', font_size=14)
-
+brain.show()
 
 # plot esimated neural activtiy (estimated using lamX)
 stc = mne.SourceEstimate(np.linalg.norm(X_lamX, axis=1) /
@@ -401,10 +408,10 @@ stc = mne.SourceEstimate(np.linalg.norm(X_lamX, axis=1) /
                          vertices=vertno, tmin=0, tstep=1, subject=subject)
 title = r'Estimated  neural activtiy (using $\lambda_X$)'
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
-                 views='frontal', hemi=hemi, subjects_dir=subject_dir,
+                 views=view, hemi=hemi, subjects_dir=subject_dir,
                  time_viewer=False, colorbar=True)
 brain.add_text(0.1, 0.9, title, 'title', font_size=14)
-
+brain.show()
 
 # plot esimated neural activtiy  (estimated using lamC)
 stc = mne.SourceEstimate(np.linalg.norm(X_lamC, axis=1) /
@@ -412,15 +419,16 @@ stc = mne.SourceEstimate(np.linalg.norm(X_lamC, axis=1) /
                          vertices=vertno, tmin=0, tstep=1, subject=subject)
 title = r'Estimated neural activtiy (using $\lambda_{'+conn_names[i_conn]+'}$)'
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
-                 views='frontal', hemi=hemi, subjects_dir=subject_dir,
+                 views=view, hemi=hemi, subjects_dir=subject_dir,
                  time_viewer=False, colorbar=True)
 brain.add_text(0.1, 0.9, title, 'title', font_size=14)
-
+brain.show()
 
 ###############################################################################
 # Plot simulated connectivity and estimated connectivity with both lamX and
 # lamC (norm along frequency of seed based conncctivity)
-
+# Warning: note that plot perspective might not be optimal, when downloading
+# the codes plots are interavtive and perspectives can be changed
 
 # Compute true and estimated connectivity
 
@@ -468,31 +476,31 @@ stc = mne.SourceEstimate(conn_true/np.max(conn_true), vertices=vertno, tmin=0,
                          tstep=1, subject=subject)
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  hemi=hemi, subjects_dir=subject_dir, time_viewer=False,
-                 colorbar=True)
+                 colorbar=True, views=view)
 title = 'Simulated '+conn_names[i_conn]
 brain.add_text(0.1, 0.9, title, 'title', font_size=14)
-
+brain.show()
 
 # plot estimated brain connectivity (estimated using lamX)
 stc = mne.SourceEstimate(conn_lamX/np.max(conn_lamX), vertices=vertno, tmin=0,
                          tstep=1, subject=subject)
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  hemi=hemi, subjects_dir=subject_dir, time_viewer=False,
-                 colorbar=True)
+                 colorbar=True, views=view)
 title = 'Estimated ' + conn_names[i_conn] + r' (with $\lambda_{X}$)'
 brain.add_text(0.1, 0.9, title, 'title', font_size=14)
-
+brain.show()
 
 # plot estimated brain connectivity (estimated using lamc)
 stc = mne.SourceEstimate(conn_lamC/np.max(conn_lamC), vertices=vertno, tmin=0,
                          tstep=1, subject=subject)
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  hemi=hemi, subjects_dir=subject_dir, time_viewer=False,
-                 colorbar=True)
+                 colorbar=True, views=view)
 title = 'Estimated ' + conn_names[i_conn] + r' (with $\lambda_{' + \
         conn_names[i_conn] + '}$)'
 brain.add_text(0.1, 0.9, title, 'title', font_size=14)
-
+brain.show()
 
 ###############################################################################
 # Save data in a local folder

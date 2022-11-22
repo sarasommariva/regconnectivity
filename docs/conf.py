@@ -14,7 +14,7 @@ import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 from visbrain.config import CONFIG
-
+import mne
 
 # -- Project information -----------------------------------------------------
 
@@ -31,7 +31,9 @@ release = '0.0'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx_gallery.gen_gallery']
+extensions = ['sphinx_gallery.gen_gallery', 
+	      "sphinx.ext.napoleon",
+              "pyvista.ext.plot_directive"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -73,9 +75,18 @@ gallery_dirs = ['auto_examples', 'auto_paper', ]
 sphinx_gallery_conf = {
      'examples_dirs': examples_dirs,   # path to your example scripts
      'gallery_dirs': gallery_dirs,  # path to where to save gallery generated output
-     'image_scrapers': ('matplotlib'), # figures extension to be embedded
+     'image_scrapers': ('matplotlib', 'pyvista'), # figures extension to be embedded
      'default_thumb_file': os.path.join('_static', 'smiles.jpg'),
      #'within_subsection_order': FileNameSortKey
 }
+
+try:
+    #mlab = mne.utils._import_mlab()
+    find_mayavi_figures = True
+    # Do not pop up any mayavi windows while running the
+    # examples. These are very annoying since they steal the focus.
+    mlab.options.offscreen = True
+except Exception:
+    find_mayavi_figures = False
 
 #CONFIG['MPL_RENDER'] = True # Embed visbrain figures in the documentation
