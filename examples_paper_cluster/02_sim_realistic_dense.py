@@ -2,7 +2,7 @@
 # coding: utf-8
 
 """
-Part 2: Generate sensor level recordings and compute optimal parameters
+Part 3: Generate sensor level recordings and compute optimal parameters
 =======================================================================
 
 """
@@ -17,7 +17,7 @@ from scipy import optimize, signal
 from mne import (read_forward_solution, convert_forward_solution,
                  pick_types_forward)
 import functions_code as myf
-target = '..'
+target = '.'
 noct = '6'
 t_init = time.time()
 

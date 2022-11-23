@@ -142,8 +142,11 @@ p1_locs, p2_locs = funcs.gen_patches_sources(cortico_dist, r, seed_loc)
 
 ###############################################################################
 # Plot patches on the brain
-# Warning: note that plot perspective might not be optimal, when downloading
-# the codes plots are interavtive and perspectives can be changed
+#
+# .. warning::
+#     Note that plot perspective might not be optimal, when downloading
+#     the codes plots are interavtive and perspectives can be changed.
+
 
 view = 'axial'
 X = np.zeros((G.shape[1]))
@@ -152,7 +155,7 @@ stc = mne.SourceEstimate(X, vertices=vertno, tmin=0, tstep=1, subject=subject)
 hemi = 'both'
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  hemi=hemi, subjects_dir=subject_dir, time_viewer=False,
-                 colorbar=True, views=view)
+                 colorbar=False, views=view)
 
 nv_lh = stc.vertices[0].shape[0]
 for idx, loc in enumerate([loc for loc in p1_locs]):
@@ -172,7 +175,8 @@ for idx, loc in enumerate([loc for loc in p2_locs]):
         brain.add_foci(stc.vertices[1][loc-nv_lh], coords_as_verts=True,
                        hemi='rh', color='red', scale_factor=0.3)
 
-
+title = 'Active patches location'
+brain.add_text(0.1, 0.9, title, 'title', font_size=14)
 ###############################################################################
 # Simulate brain activity
 
@@ -406,7 +410,7 @@ brain.show()
 stc = mne.SourceEstimate(np.linalg.norm(X_lamX, axis=1) /
                          np.max(np.linalg.norm(X_lamX, axis=1)),
                          vertices=vertno, tmin=0, tstep=1, subject=subject)
-title = r'Estimated  neural activtiy (using $\lambda_X$)'
+title = 'Estimated  neural activtiy (using lam_X)'
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  views=view, hemi=hemi, subjects_dir=subject_dir,
                  time_viewer=False, colorbar=True)
@@ -417,7 +421,7 @@ brain.show()
 stc = mne.SourceEstimate(np.linalg.norm(X_lamC, axis=1) /
                          np.max(np.linalg.norm(X_lamC, axis=1)),
                          vertices=vertno, tmin=0, tstep=1, subject=subject)
-title = r'Estimated neural activtiy (using $\lambda_{'+conn_names[i_conn]+'}$)'
+title = r'Estimated neural activtiy (using lam_{'+conn_names[i_conn]+'})'
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  views=view, hemi=hemi, subjects_dir=subject_dir,
                  time_viewer=False, colorbar=True)
@@ -487,7 +491,7 @@ stc = mne.SourceEstimate(conn_lamX/np.max(conn_lamX), vertices=vertno, tmin=0,
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  hemi=hemi, subjects_dir=subject_dir, time_viewer=False,
                  colorbar=True, views=view)
-title = 'Estimated ' + conn_names[i_conn] + r' (with $\lambda_{X}$)'
+title = 'Estimated ' + conn_names[i_conn] + r' (with lam_{X})'
 brain.add_text(0.1, 0.9, title, 'title', font_size=14)
 brain.show()
 
@@ -497,8 +501,8 @@ stc = mne.SourceEstimate(conn_lamC/np.max(conn_lamC), vertices=vertno, tmin=0,
 brain = stc.plot(subject=subject, surface='inflated', smoothing_steps=5,
                  hemi=hemi, subjects_dir=subject_dir, time_viewer=False,
                  colorbar=True, views=view)
-title = 'Estimated ' + conn_names[i_conn] + r' (with $\lambda_{' + \
-        conn_names[i_conn] + '}$)'
+title = 'Estimated ' + conn_names[i_conn] + r' (with lam_{' + \
+        conn_names[i_conn] + '})'
 brain.add_text(0.1, 0.9, title, 'title', font_size=14)
 brain.show()
 

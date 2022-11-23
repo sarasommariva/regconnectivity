@@ -57,8 +57,9 @@ html_theme_options = {
     'globaltoc_includehidden': False,
     'navbar_links': [
 #        ("API", "api"),
-	("Examples", "auto_examples/index"),
-	("Advanced analysis", "auto_paper/index"),
+	("Single simulation", "auto_single_simulation/index"),
+	("Paper results", "auto_paper_results/index"),
+	("Run on cluster", "auto_paper_cluster/index"),
         ("GitHub", "https://github.com/sarasommariva/regconnectivity", True)
     ],
     'bootswatch_theme': "cerulean"
@@ -69,14 +70,14 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-examples_dirs = ['../examples', '../examples_paper']
-gallery_dirs = ['auto_examples', 'auto_paper', ]
+examples_dirs = ['../examples_single_simulation', '../examples_paper_results', '../examples_paper_cluster']
+gallery_dirs = ['auto_single_simulation', 'auto_paper_results', 'auto_paper_cluster', ]
 
 sphinx_gallery_conf = {
      'examples_dirs': examples_dirs,   # path to your example scripts
      'gallery_dirs': gallery_dirs,  # path to where to save gallery generated output
      'image_scrapers': ('matplotlib', 'pyvista'), # figures extension to be embedded
-     'default_thumb_file': os.path.join('_static', 'smiles.jpg'),
+     'default_thumb_file': os.path.join('_static', 'X_lamX.png'),
      #'within_subsection_order': FileNameSortKey
 }
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 """
-Part 1: Generate seeds time coursed and locations
+Part 2: Generate seeds time coursed and locations
 =================================================
 
 """
@@ -9,10 +9,11 @@ Part 1: Generate seeds time coursed and locations
 import mne
 import numpy as np
 import os.path as op
+import os
 from scipy import signal
 import functions_code as myf
 import sys
-target = '..'
+target = '.'
 noct = '6'
 
 
@@ -118,4 +119,9 @@ seed_locs = myf.select_sources(G, dip_pos, N_loc)
 
 seed_tc_loc = {'features': features,
                'seed_tcs': seed_tcs, 'seed_locs': seed_locs}
-np.save('./run_data/seed_tc_loc.npy', seed_tc_loc)
+
+run_data_path = op.join('.', 'run_data')
+if not op.exists(run_data_path):
+    os.mkdir(run_data_path)
+
+np.save(op.join(run_data_path, 'seed_tc_loc.npy'), seed_tc_loc)

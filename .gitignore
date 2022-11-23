@@ -1,7 +1,8 @@
 # Sphinx documentation
 docs/_build
-docs/auto_examples/
-docs/auto_paper/
+docs/auto_paper_cluster/
+docs/auto_paper_results/
+docs/auto_single_simulation/
 docs/modules/generated/
 docs/datasets/generated/
 docs/generated/

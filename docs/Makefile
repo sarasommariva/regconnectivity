@@ -45,7 +45,9 @@ help:
 
 clean:
 	-rm -rf $(BUILDDIR)/*
-	-rm -rf auto_examples/
+	-rm -rf auto_single_simulation/
+	-rm -rf auto_paper_results/
+	-rm -rf auto_paper_cluster/
 	-rm -rf generated/*
 	-rm -rf modules/generated/*
 
@@ -181,7 +183,7 @@ pseudoxml:
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
 
 install:
-	rm -rf _build/doctrees _build/transfreq.github.io
+	rm -rf _build/doctrees _build/regconnectivity.github.io
 	# first clone the neuropycon/ephypype.github.io repo because it may ask
 	# for password and we don't want to delay this long build in
 	# the middle of it
@@ -189,12 +191,12 @@ install:
 	# --depth 1 is a speed optimization since we don't need the
 	# history prior to the last commit
 	# -b gh-pages fetches only the branch for the gh-pages
-	git clone -b gh-pages --single-branch --no-checkout --depth 1 https://github.com/elisabettavallarino/transfreq.git _build/transfreq.github.io
-	touch _build/transfreq.github.io/.nojekyll
+	git clone -b gh-pages --single-branch --no-checkout --depth 1 https://github.com/theMIDAgroup/regconnectivity _build/regconnectivity.github.io
+	touch _build/regconnectivity.github.io/.nojekyll
 	make html
 	cd _build/ && \
-	cp -r html/* transfreq.github.io && \
-	cd transfreq.github.io && \
+	cp -r html/* regconnectivity.github.io && \
+	cd regconnectivity.github.io && \
 	git add * && \
 	git add .nojekyll && \
 	git commit -a -m 'Make install' && \
