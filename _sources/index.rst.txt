@@ -9,13 +9,14 @@ Welcome to the documentation of regconnectivity, a set of codes for simulating r
 
 A detailed description of the simulation pipeline can be found in the original paper [1]_.
 
-.. image:: fig_pipeline.png
-  :width: 400
-
 
 Download
 --------
 All codes can be freely downloaded from the `github page <https://github.com/theMIDAgroup/regconnectivity>`_. 
+
+.. image:: fig_pipeline.png
+  :width: 400
+
 
 
 Bug reports
