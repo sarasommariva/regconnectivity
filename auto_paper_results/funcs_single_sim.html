@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Main functions &#8212; reg-connectivity 0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          reg-connectivity</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../auto_single_simulation/index.html">Single simulation</a></li>
+                <li><a href="index.html">Paper results</a></li>
+                <li><a href="../auto_paper_cluster/index.html">Run on cluster</a></li>
+                <li><a href="https://github.com/sarasommariva/regconnectivity">GitHub</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/auto_paper_results/funcs_single_sim.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-auto-paper-results-funcs-single-sim-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
+</div>
+<section class="sphx-glr-example-title" id="main-functions">
+<span id="sphx-glr-auto-paper-results-funcs-single-sim-py"></span><h1>Main functions<a class="headerlink" href="#main-functions" title="Permalink to this heading">¶</a></h1>
+<p>Various funcctions that are used when running single_simulation.py</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">mne_connectivity</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">signal</span>
+<span class="kn">from</span> <span class="nn">scipy.fft</span> <span class="kn">import</span> <span class="n">fft</span><span class="p">,</span> <span class="n">ifft</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">select_sources</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">N_loc</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Select N_loc pairs of active sources, given the leadfield (G) and the</span>
+<span class="sd">    source locations (src), so that the distance between the two sources is</span>
+<span class="sd">    grater than 4 cm (0.04 m) and the intensity at sensor level is similar</span>
+<span class="sd">    (i.e. the ratio of the norm of the corresponding leadfield columns is in</span>
+<span class="sd">    (9/10, 10/9))</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        G: array, shape (N_sensors, N_sources)</span>
+<span class="sd">            leadfeld matrix</span>
+<span class="sd">        src: array, shape (N_sources,3)</span>
+<span class="sd">            sources locations in the source space</span>
+<span class="sd">        N_loc: int</span>
+<span class="sd">            number of pairs of sources to be generated</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        sample: array, shape (N_loc,2)</span>
+<span class="sd">            index of the selected sources in the source space</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sample</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="nb">int</span><span class="p">(</span><span class="mi">0</span><span class="p">)]</span><span class="o">*</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">N_loc</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_loc</span><span class="p">):</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">ratio</span> <span class="o">&lt;</span> <span class="mi">9</span><span class="o">/</span><span class="mi">10</span> <span class="ow">or</span> <span class="n">ratio</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="o">/</span><span class="mi">9</span> <span class="ow">or</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="mf">0.04</span><span class="p">:</span>
+            <span class="n">sample</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">:</span> <span class="mi">2</span><span class="p">]</span>
+            <span class="n">norm1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">G</span><span class="p">)[</span><span class="n">sample</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+            <span class="n">norm2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">G</span><span class="p">)[</span><span class="n">sample</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+            <span class="n">ratio</span> <span class="o">=</span> <span class="n">norm1</span><span class="o">/</span><span class="n">norm2</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="n">sample</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span><span class="o">-</span><span class="n">src</span><span class="p">[</span><span class="n">sample</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+    <span class="k">return</span> <span class="n">sample</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gen_ar_model</span><span class="p">(</span><span class="n">N_act</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Sigma</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate an MVAR model with directional coupling from source 1 to source 2,</span>
+<span class="sd">    the third source, if present, is uncorrelated to the the first two</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        N_act: 2, 3</span>
+<span class="sd">            dimension of the model (i.e. number of time courses to be</span>
+<span class="sd">            simulated)</span>
+<span class="sd">        P: int</span>
+<span class="sd">            order of the model</span>
+<span class="sd">        Sigma: float (in (0.1,1))</span>
+<span class="sd">            variance of the non zero entries of the model</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        model: dictionary</span>
+<span class="sd">            Dictionary containing:\n</span>
+<span class="sd">                * the matrices that define the model</span>
+<span class="sd">                * N_act</span>
+<span class="sd">                * P</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">lambdamax</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">I</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">N_act</span><span class="p">)</span>
+    <span class="n">vect</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="mi">1</span><span class="p">)]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="mi">0</span><span class="p">)]))</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">I</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">vect</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">vect</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">vect</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">index</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+    <span class="k">while</span> <span class="n">lambdamax</span> <span class="o">&lt;</span> <span class="mf">0.9</span> <span class="ow">or</span> <span class="n">lambdamax</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">Arsig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[],</span> <span class="p">[]])</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">P</span><span class="p">):</span>
+            <span class="n">aloc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">N_act</span><span class="p">,</span> <span class="n">N_act</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">vect</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="n">aloc</span><span class="p">[</span><span class="n">vect</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">s</span><span class="p">],</span> <span class="n">vect</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">s</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">Sigma</span>
+            <span class="n">Arsig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">Arsig</span><span class="p">,</span> <span class="n">aloc</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">E</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">N_act</span><span class="o">*</span><span class="n">P</span><span class="p">)</span>
+        <span class="n">AA</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">Arsig</span><span class="p">,</span> <span class="n">E</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span> <span class="o">-</span><span class="n">N_act</span><span class="p">,</span> <span class="p">:]))</span>
+        <span class="n">Lambda</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">AA</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">lambdamax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">Lambda</span><span class="p">))</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Arsig&#39;</span><span class="p">:</span> <span class="n">Arsig</span><span class="p">,</span> <span class="s1">&#39;N_act&#39;</span><span class="p">:</span> <span class="n">N_act</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="n">P</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">model</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gen_ar_series</span><span class="p">(</span><span class="n">AR_mod</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate an MVAR time courses</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        AR_mod: dictionary (output of gen_AR_model)</span>
+<span class="sd">            Dictionary containing:\n</span>
+<span class="sd">                * the matrices that define the model</span>
+<span class="sd">                * N_act</span>
+<span class="sd">                * P</span>
+<span class="sd">        T: int</span>
+<span class="sd">            number of time points of the generated time courses</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        X: array, shape (N_act, T)</span>
+<span class="sd">            the generated time courses</span>
+<span class="sd">        AR_mod: dictionary</span>
+<span class="sd">            Dictionary containing:\n</span>
+<span class="sd">                * the matrices that define the model</span>
+<span class="sd">                * N_act</span>
+<span class="sd">                * P</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Sigma</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">N0</span> <span class="o">=</span> <span class="mi">1000</span>
+    <span class="n">N_act</span> <span class="o">=</span> <span class="n">AR_mod</span><span class="p">[</span><span class="s1">&#39;N_act&#39;</span><span class="p">]</span>
+    <span class="n">P</span> <span class="o">=</span> <span class="n">AR_mod</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span>
+    <span class="n">Arsig</span> <span class="o">=</span> <span class="n">AR_mod</span><span class="p">[</span><span class="s1">&#39;Arsig&#39;</span><span class="p">]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">N_act</span><span class="p">,</span> <span class="n">T</span><span class="o">+</span><span class="n">N0</span><span class="p">)</span><span class="o">*</span><span class="n">Sigma</span>
+    <span class="n">AR_mod</span><span class="p">[</span><span class="s1">&#39;noise&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">P</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="o">+</span><span class="n">N0</span><span class="p">):</span>
+        <span class="n">yloc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">y</span><span class="p">[:,</span> <span class="n">k</span><span class="o">-</span><span class="n">P</span><span class="p">:</span> <span class="n">k</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">y</span><span class="p">[:,</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">Arsig</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">yloc</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">k</span><span class="p">]</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">y</span><span class="p">[:,</span> <span class="n">N0</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">AR_mod</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gen_background_tcs</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">N_bg</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate background noise time courses following univariate AR models</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        P: int</span>
+<span class="sd">            order of the AR model</span>
+<span class="sd">        N_bg: int</span>
+<span class="sd">            number of time coursed to generate</span>
+<span class="sd">        T: int</span>
+<span class="sd">            number of time points of the generate time courses</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bg_tcs: array, shape (N_bg, T)</span>
+<span class="sd">            the generated time courses</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bg_tcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N_bg</span><span class="p">,</span> <span class="n">T</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i_bg</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_bg</span><span class="p">):</span>
+
+        <span class="c1"># genarate the model</span>
+        <span class="n">lambdamax</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="k">while</span> <span class="n">lambdamax</span> <span class="o">&lt;</span> <span class="mf">0.9</span> <span class="ow">or</span> <span class="n">lambdamax</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">Arsig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">P</span><span class="p">):</span>
+                <span class="n">aloc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">Arsig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">Arsig</span><span class="p">,</span> <span class="n">aloc</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">E</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+            <span class="n">AA</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">Arsig</span><span class="p">,</span> <span class="n">E</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]))</span>
+            <span class="n">Lambda</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">AA</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">lambdamax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">Lambda</span><span class="p">))</span>
+        <span class="c1"># simulate tc</span>
+        <span class="n">Sigma</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">N0</span> <span class="o">=</span> <span class="mi">1000</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="o">+</span><span class="n">N0</span><span class="p">)</span><span class="o">*</span><span class="n">Sigma</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="o">+</span><span class="n">N0</span><span class="p">):</span>
+            <span class="n">yloc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">y</span><span class="p">[:,</span> <span class="n">k</span><span class="o">-</span><span class="n">P</span><span class="p">:</span><span class="n">k</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">y</span><span class="p">[:,</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">Arsig</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">yloc</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">k</span><span class="p">]</span>
+        <span class="n">bg_tcs</span><span class="p">[</span><span class="n">i_bg</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[:,</span> <span class="n">N0</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">bg_tcs</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gen_patches_sources</span><span class="p">(</span><span class="n">cortico_dist</span><span class="p">,</span> <span class="n">patch_radius</span><span class="p">,</span> <span class="n">seed_loc</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Define sources composing a patch with specific distance from the center</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        cortico_dist: array, shape (N_source, N_source)</span>
+<span class="sd">            cortico distances between each pair of sources in the source space</span>
+<span class="sd">        patch_radius: float</span>
+<span class="sd">            radius of the patch</span>
+<span class="sd">        seed_loc: array, touple, list, shape (2,)</span>
+<span class="sd">            index of the seed sources</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        p1_locs: array, shape (N_p1,)</span>
+<span class="sd">            the index of the sutces within the first patch</span>
+<span class="sd">        p1_locs: array, shape (N_p2,)</span>
+<span class="sd">            the index of the sutces within the second patch</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tmp_id_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">cortico_dist</span><span class="p">[:,</span> <span class="n">seed_loc</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+    <span class="n">n_sources_0</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cortico_dist</span><span class="p">[:,</span> <span class="n">seed_loc</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">&lt;</span> <span class="n">patch_radius</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">tmp_id_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">cortico_dist</span><span class="p">[:,</span> <span class="n">seed_loc</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">n_sources_1</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cortico_dist</span><span class="p">[:,</span> <span class="n">seed_loc</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">&lt;</span> <span class="n">patch_radius</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">p1_locs</span> <span class="o">=</span> <span class="n">tmp_id_0</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span> <span class="n">n_sources_0</span><span class="p">]</span>
+    <span class="n">p2_locs</span> <span class="o">=</span> <span class="n">tmp_id_1</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span> <span class="n">n_sources_1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">p1_locs</span><span class="p">,</span> <span class="n">p2_locs</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gen_coherent_patches</span><span class="p">(</span><span class="n">seed_tc</span><span class="p">,</span> <span class="n">p1_locs</span><span class="p">,</span> <span class="n">p2_locs</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">i_c</span><span class="p">,</span> <span class="n">nperseg</span><span class="p">,</span> <span class="n">nfft</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span>
+                         <span class="n">fmin</span><span class="p">,</span> <span class="n">fmax</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate time courses to be assigned to the sources within the patches.</span>
+<span class="sd">    The patches are Gaussian and have specific intracoherence level</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        seed_tc: array, shape (2, T)</span>
+<span class="sd">            time courses of the seeds of each patch</span>
+<span class="sd">        p1_locs: array, shpae (N_p1)</span>
+<span class="sd">            indeces of the sources within patch 1</span>
+<span class="sd">        p2_locs: array, shpae (N_p2)</span>
+<span class="sd">            indeces of the sources within patch 2</span>
+<span class="sd">        c: 1, 0.5, 2</span>
+<span class="sd">            coeherence level</span>
+<span class="sd">        i_c: not used anymore</span>
+<span class="sd">        nperseg: int</span>
+<span class="sd">            lenght of the epochs for the computation of the coherence</span>
+<span class="sd">        nfft: int</span>
+<span class="sd">            number of frequencies</span>
+<span class="sd">        fs: float</span>
+<span class="sd">            sampling frequency</span>
+<span class="sd">        fmin: float</span>
+<span class="sd">            minimum frequency for the computation of coherence</span>
+<span class="sd">        fmax: float</span>
+<span class="sd">            maximum frequency for the computation of coherence</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        p1_tcs: array, shape (N_p1,T)</span>
+<span class="sd">            time courses of the sources in patch 1</span>
+<span class="sd">        p2_tcs: array, shape (N_p2,T)</span>
+<span class="sd">            time courses of the sources in patch 2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># define gaussian window</span>
+    <span class="n">std_dev1</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p1_locs</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">0.4</span><span class="p">)))</span>  <span class="c1"># standard deviation</span>
+                                                           <span class="c1"># patch 1</span>
+    <span class="n">w1</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p1_locs</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">std_dev1</span><span class="p">)</span>  <span class="c1"># weights patch 1</span>
+    <span class="n">w1</span> <span class="o">=</span> <span class="n">w1</span><span class="p">[(</span><span class="nb">len</span><span class="p">(</span><span class="n">p1_locs</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):]</span>
+    <span class="n">std_dev2</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p2_locs</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">0.4</span><span class="p">)))</span>  <span class="c1"># standard deviation</span>
+                                                           <span class="c1"># patch 2</span>
+    <span class="n">w2</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p2_locs</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">std_dev2</span><span class="p">)</span>  <span class="c1"># weights patch 1</span>
+    <span class="n">w2</span> <span class="o">=</span> <span class="n">w2</span><span class="p">[(</span><span class="nb">len</span><span class="p">(</span><span class="n">p2_locs</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):]</span>
+
+    <span class="n">T</span> <span class="o">=</span> <span class="n">seed_tc</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">p1_tcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">seed_tc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)),</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">p1_locs</span><span class="p">),</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">p2_tcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">seed_tc</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)),</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">p2_locs</span><span class="p">),</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">p1_tcs</span> <span class="o">=</span> <span class="n">seed_tc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">p2_tcs</span> <span class="o">=</span> <span class="n">seed_tc</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="mf">0.5</span><span class="p">:</span>
+            <span class="n">rate1</span> <span class="o">=</span> <span class="mi">100</span>
+            <span class="n">rate2</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="mf">0.2</span><span class="p">:</span>
+            <span class="n">rate1</span> <span class="o">=</span> <span class="mi">500</span>
+            <span class="n">rate2</span> <span class="o">=</span> <span class="mi">300</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;wrong coherence level, accepted values are: 1, 0.5, 0.2&#39;</span><span class="p">)</span>
+
+        <span class="c1"># grow patch 1</span>
+        <span class="k">for</span> <span class="n">i_source</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">p1_locs</span><span class="p">)):</span>
+            <span class="n">mean_coh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="k">while</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">mean_coh</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">c</span><span class="o">-</span><span class="mf">0.2</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">mean_coh</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">c</span><span class="o">+</span><span class="mf">0.2</span><span class="p">):</span>
+                <span class="n">new_tc</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">seed_tc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span> <span class="o">+</span>\
+                    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">rate1</span><span class="o">+</span><span class="n">rate2</span><span class="p">)</span>
+                <span class="n">new_tc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">ifft</span><span class="p">(</span><span class="n">new_tc</span><span class="p">))</span><span class="o">*</span><span class="n">w1</span><span class="p">[</span><span class="n">i_source</span><span class="p">]</span> <span class="o">*</span>\
+                    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">seed_tc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])</span> <span class="o">/</span>
+                     <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">ifft</span><span class="p">(</span><span class="n">new_tc</span><span class="p">))))</span>
+
+                <span class="n">f</span><span class="p">,</span> <span class="n">conn</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">coherence</span><span class="p">(</span><span class="n">p1_tcs</span><span class="p">,</span> <span class="n">new_tc</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span>
+                                           <span class="n">window</span><span class="o">=</span><span class="s1">&#39;hann&#39;</span><span class="p">,</span> <span class="n">nperseg</span><span class="o">=</span><span class="n">nperseg</span><span class="p">,</span>
+                                           <span class="n">noverlap</span><span class="o">=</span><span class="n">nperseg</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">nfft</span><span class="o">=</span><span class="n">nperseg</span><span class="p">,</span>
+                                           <span class="n">detrend</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+                <span class="n">i_f_in</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">f</span> <span class="o">&gt;=</span> <span class="n">fmin</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">f</span> <span class="o">&lt;=</span> <span class="n">fmax</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">mean_coh</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">conn</span><span class="p">[:,</span> <span class="n">i_f_in</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+            <span class="n">p1_tcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p1_tcs</span><span class="p">,</span> <span class="n">new_tc</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># grow patch 2</span>
+        <span class="k">for</span> <span class="n">i_source</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">p2_locs</span><span class="p">)):</span>
+            <span class="n">mean_coh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="k">while</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">mean_coh</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">c</span><span class="o">-</span><span class="mf">0.2</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">mean_coh</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">c</span><span class="o">+</span><span class="mf">0.2</span><span class="p">):</span>
+                <span class="n">new_tc</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">seed_tc</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span> <span class="o">+</span>\
+                             <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span>
+                                                      <span class="n">rate1</span><span class="o">+</span><span class="n">rate2</span><span class="p">)</span>
+                <span class="n">new_tc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">ifft</span><span class="p">(</span><span class="n">new_tc</span><span class="p">))</span> <span class="o">*</span> <span class="n">w2</span><span class="p">[</span><span class="n">i_source</span><span class="p">]</span> <span class="o">*</span>\
+                    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">seed_tc</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span> <span class="o">/</span>
+                     <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">ifft</span><span class="p">(</span><span class="n">new_tc</span><span class="p">))))</span>
+
+                <span class="n">f</span><span class="p">,</span> <span class="n">conn</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">coherence</span><span class="p">(</span><span class="n">p2_tcs</span><span class="p">,</span> <span class="n">new_tc</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span>
+                                           <span class="n">window</span><span class="o">=</span><span class="s1">&#39;hann&#39;</span><span class="p">,</span> <span class="n">nperseg</span><span class="o">=</span><span class="n">nperseg</span><span class="p">,</span>
+                                           <span class="n">noverlap</span><span class="o">=</span><span class="n">nperseg</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">nfft</span><span class="o">=</span><span class="n">nperseg</span><span class="p">,</span>
+                                           <span class="n">detrend</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+                <span class="n">i_f_in</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">f</span> <span class="o">&gt;=</span> <span class="n">fmin</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">f</span> <span class="o">&lt;=</span> <span class="n">fmax</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">mean_coh</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">conn</span><span class="p">[:,</span> <span class="n">i_f_in</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+            <span class="n">p2_tcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p2_tcs</span><span class="p">,</span> <span class="n">new_tc</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">p1_tcs_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p1_tcs</span><span class="p">,</span> <span class="nb">ord</span><span class="o">=</span><span class="s1">&#39;fro&#39;</span><span class="p">)</span>
+    <span class="n">p2_tcs_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p2_tcs</span><span class="p">,</span> <span class="nb">ord</span><span class="o">=</span><span class="s1">&#39;fro&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">p1_tcs</span><span class="o">/</span><span class="n">p1_tcs_norm</span><span class="p">,</span> <span class="n">p2_tcs</span><span class="o">/</span><span class="n">p2_tcs_norm</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">err_X</span><span class="p">(</span><span class="n">Lambda</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">GGt</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Error in estimating X using the regularization parameter Lambda</span>
+<span class="sd">            _                       2</span>
+<span class="sd">    err_X = \   ||X_Lambda(t)-X(t)||</span>
+<span class="sd">            /_t</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        Lambda: float (&gt;0)</span>
+<span class="sd">            regularization parameter</span>
+<span class="sd">        X: array, shape (N_source,T)</span>
+<span class="sd">            activity of N_source sources</span>
+<span class="sd">        Y: array, shape (N_sensor,T)</span>
+<span class="sd">            Sensor level regordings</span>
+<span class="sd">        G: array, shape (N_sensor,N_source)</span>
+<span class="sd">            leadfiel matrix</span>
+<span class="sd">        GGt: array, shape (N_sensor, N_sensor)</span>
+<span class="sd">            GGt = G*G^T</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        value: float</span>
+<span class="sd">            error</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">Lambda</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">I</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">W_tik</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">GGt</span><span class="o">+</span><span class="n">Lambda</span><span class="o">*</span><span class="n">I</span><span class="p">))</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">T</span><span class="o">*</span><span class="n">G</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">W_tik</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span><span class="o">-</span><span class="n">X</span><span class="p">,</span> <span class="nb">ord</span><span class="o">=</span><span class="s1">&#39;fro&#39;</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+    <span class="k">return</span> <span class="n">value</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">auc</span><span class="p">(</span><span class="n">Lambda</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">GGt</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">p1_sources</span><span class="p">,</span> <span class="n">p2_sources</span><span class="p">,</span> <span class="n">fmin</span><span class="p">,</span> <span class="n">fmax</span><span class="p">,</span>
+        <span class="n">PN_matrix</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">nperseg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute Area Under the Curve (AUC)</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        Lambda: float (&gt;0)</span>
+<span class="sd">            regularization parameter</span>
+<span class="sd">        method: string | list/tuple of strings</span>
+<span class="sd">            connectivity metrics for which compute the AUC. Valid methods are</span>
+<span class="sd">            &#39;cpsd&#39;, &#39;coh&#39;, &#39;cohy&#39;, &#39;imcoh&#39;, &#39;plv&#39;, &#39;ciplv&#39;, &#39;ppc&#39;, &#39;pli&#39;,</span>
+<span class="sd">            &#39;pli2_unbiased&#39;, &#39;wpli&#39;, &#39;wpli2_debiased&#39;</span>
+<span class="sd">        G: array, shape (N_sensor,N_source)</span>
+<span class="sd">            leadfiel matrix</span>
+<span class="sd">        GGt: array, shape (N_sensor, N_sensor)</span>
+<span class="sd">            GGt = G*G^T</span>
+<span class="sd">        Y: array, shape (N_sensor,T)</span>
+<span class="sd">            Sensor level recordings</span>
+<span class="sd">        p1_sources: array, list, tuple, shape (N_p1,)</span>
+<span class="sd">            indeces of the sources within patch 1</span>
+<span class="sd">        p2_sources: array, list, tuple, shape (N_p2,)</span>
+<span class="sd">            indeces of the sources within patch 2</span>
+<span class="sd">        fmin: float</span>
+<span class="sd">            minimum frequency for the computation of coherence</span>
+<span class="sd">        fmax: float</span>
+<span class="sd">            maximum frequency for the computation of coherence</span>
+<span class="sd">        PN_matrix: array, shape (N_p1, N_dense-N_p1)</span>
+<span class="sd">            matrix indicating which sources are connected (i.e. sources within</span>
+<span class="sd">            patch 1 with sources within patch 2)</span>
+<span class="sd">        fs: float</span>
+<span class="sd">            sampling frequency</span>
+<span class="sd">        nperseg: int</span>
+<span class="sd">            lenght of the epochs for the computation of the coherence</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        AUC_value: float</span>
+<span class="sd">            Area under the curve</span>
+<span class="sd">        TPF_all: array, shape (number of connectivity metrics, 20)</span>
+<span class="sd">            True positive fraction for each connectivity metric and for each</span>
+<span class="sd">            threshold level</span>
+<span class="sd">        FPF_all: array, shape (number of connectivity metrics, 20)</span>
+<span class="sd">            False positive fraction for each connectivity metric and for each</span>
+<span class="sd">            threshold level</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">Lambda</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">method</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="p">[</span><span class="n">method</span><span class="p">]</span>
+        <span class="n">nfft</span> <span class="o">=</span> <span class="n">nperseg</span>  <span class="c1"># number of frequencies</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">X_lam</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">GGt</span><span class="o">+</span><span class="n">Lambda</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">M</span><span class="p">)))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+
+        <span class="n">Conn_lam</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p1_sources</span><span class="p">),</span> <span class="n">N</span><span class="p">))]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;cpsd&#39;</span> <span class="ow">in</span> <span class="n">method</span><span class="p">:</span>
+            <span class="n">method_conn</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">method_conn</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;cpsd&#39;</span><span class="p">)</span>
+            <span class="n">conn_cpsd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p1_sources</span><span class="p">),</span> <span class="n">N</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p1_sources</span><span class="p">)):</span>
+                <span class="n">f</span><span class="p">,</span> <span class="n">Connlam_row</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">csd</span><span class="p">(</span><span class="n">X_lam</span><span class="p">[</span><span class="n">p1_sources</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="p">:],</span> <span class="n">X_lam</span><span class="p">,</span>
+                                            <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="s1">&#39;hann&#39;</span><span class="p">,</span>
+                                            <span class="n">nperseg</span><span class="o">=</span><span class="n">nperseg</span><span class="p">,</span>
+                                            <span class="n">noverlap</span><span class="o">=</span><span class="n">nperseg</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span>
+                                            <span class="n">nfft</span><span class="o">=</span><span class="n">nfft</span><span class="p">,</span> <span class="n">detrend</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span>
+                                            <span class="n">return_onesided</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                            <span class="n">scaling</span><span class="o">=</span><span class="s1">&#39;density&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">f_in</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">f</span> <span class="o">&gt;=</span> <span class="n">fmin</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+                                      <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">f</span> <span class="o">&lt;=</span> <span class="n">fmax</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">conn_cpsd</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">Connlam_row</span><span class="p">[:,</span> <span class="n">f_in</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">Conn_lam</span><span class="p">[</span><span class="n">method</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;cpsd&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">conn_cpsd</span><span class="p">,</span> <span class="n">p1_sources</span><span class="p">,</span>
+                                                       <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">method_conn</span> <span class="o">=</span> <span class="n">method</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">method_conn</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">noverlap</span> <span class="o">=</span> <span class="n">nperseg</span><span class="o">//</span><span class="mi">2</span>
+            <span class="n">nepo</span> <span class="o">=</span> <span class="n">T</span><span class="o">//</span><span class="p">(</span><span class="n">nperseg</span><span class="o">-</span><span class="n">noverlap</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+            <span class="n">X_lam_re</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nepo</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">nperseg</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i_epo</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nepo</span><span class="p">):</span>
+                <span class="n">X_lam_re</span><span class="p">[</span><span class="n">i_epo</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">X_lam</span><span class="p">[:,</span> <span class="p">(</span><span class="n">nperseg</span><span class="o">-</span><span class="n">noverlap</span><span class="p">)</span><span class="o">*</span><span class="n">i_epo</span><span class="p">:</span>
+                                              <span class="p">(</span><span class="n">nperseg</span><span class="o">-</span><span class="n">noverlap</span><span class="p">)</span><span class="o">*</span><span class="n">i_epo</span><span class="o">+</span><span class="n">nperseg</span><span class="p">]</span>
+
+            <span class="n">indices</span> <span class="o">=</span> <span class="n">mne_connectivity</span><span class="o">.</span><span class="n">seed_target_indices</span><span class="p">(</span><span class="n">p1_sources</span><span class="p">,</span>
+                                                           <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">))</span>
+            <span class="n">Conn_object</span> <span class="o">=</span> <span class="n">mne_connectivity</span><span class="o">.</span><span class="n">spectral_connectivity_epochs</span><span class="p">(</span>
+                            <span class="n">X_lam_re</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method_conn</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;fourier&#39;</span><span class="p">,</span>
+                            <span class="n">indices</span><span class="o">=</span><span class="n">indices</span><span class="p">,</span> <span class="n">sfreq</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="n">fmin</span><span class="o">=</span><span class="n">fmin</span><span class="p">,</span> <span class="n">fmax</span><span class="o">=</span><span class="n">fmax</span><span class="p">,</span>
+                            <span class="n">faverage</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i_conn</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">method_conn</span><span class="p">)):</span>
+                <span class="n">Conn</span> <span class="o">=</span> <span class="n">Conn_object</span><span class="p">[</span><span class="n">i_conn</span><span class="p">]</span><span class="o">.</span><span class="n">xarray</span><span class="o">.</span><span class="n">data</span>
+                <span class="n">Conn_lam</span><span class="p">[</span><span class="n">method</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">method_conn</span><span class="p">[</span><span class="n">i_conn</span><span class="p">])]</span> <span class="o">=</span>\
+                    <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">Conn</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+                               <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p1_sources</span><span class="p">),</span> <span class="n">N</span><span class="p">))</span>
+                <span class="n">Conn_lam</span><span class="p">[</span><span class="n">method</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">method_conn</span><span class="p">[</span><span class="n">i_conn</span><span class="p">])]</span> <span class="o">=</span>\
+                    <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">Conn_lam</span><span class="p">[</span><span class="n">method</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">method_conn</span><span class="p">[</span><span class="n">i_conn</span><span class="p">])],</span>
+                              <span class="n">p1_sources</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">AUC_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">method</span><span class="p">)))</span>
+        <span class="n">Alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="n">Alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">Alpha</span><span class="p">)</span>
+
+        <span class="n">TPF_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">method</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">Alpha</span><span class="p">)))</span>
+        <span class="n">FPF_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">method</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">Alpha</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">i_conn</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">method</span><span class="p">)):</span>
+
+            <span class="n">TPF</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Alpha</span><span class="p">))</span>
+            <span class="n">FPF</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Alpha</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i_alp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Alpha</span><span class="p">)):</span>
+                <span class="n">aux</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">Conn_lam</span><span class="p">[</span><span class="n">i_conn</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="n">Alpha</span><span class="p">[</span><span class="n">i_alp</span><span class="p">]</span> <span class="o">*</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">Conn_lam</span><span class="p">[</span><span class="n">i_conn</span><span class="p">])),</span>
+                               <span class="nb">abs</span><span class="p">(</span><span class="n">Conn_lam</span><span class="p">[</span><span class="n">i_conn</span><span class="p">]),</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">PN_evaluate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">aux</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">aux</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+                <span class="n">TP</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">PN_matrix</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">PN_evaluate</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
+                                      <span class="n">PN_evaluate</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+                <span class="n">FP</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">PN_evaluate</span><span class="p">)</span><span class="o">-</span><span class="n">TP</span>
+                <span class="n">FPF</span><span class="p">[</span><span class="n">i_alp</span><span class="p">]</span> <span class="o">=</span> <span class="n">FP</span> <span class="o">/</span> <span class="p">(</span><span class="n">PN_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">PN_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span>
+                                   <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">PN_matrix</span><span class="p">))</span>
+                <span class="n">TPF</span><span class="p">[</span><span class="n">i_alp</span><span class="p">]</span> <span class="o">=</span> <span class="n">TP</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">PN_matrix</span><span class="p">)</span>
+
+            <span class="n">TPF_all</span><span class="p">[</span><span class="n">i_conn</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">TPF</span>
+            <span class="n">FPF_all</span><span class="p">[</span><span class="n">i_conn</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">FPF</span>
+            <span class="n">AUC_value</span><span class="p">[</span><span class="n">i_conn</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">(</span><span class="n">TPF</span><span class="p">,</span> <span class="n">FPF</span><span class="p">)</span>
+
+    <span class="k">return</span><span class="p">(</span><span class="n">AUC_value</span><span class="p">,</span> <span class="n">TPF_all</span><span class="p">,</span> <span class="n">FPF_all</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.000 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-paper-results-funcs-single-sim-py">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/fc375565ae4ad0e988fc1bab1b9df281/funcs_single_sim.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">funcs_single_sim.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/724b65dc446e2f71209019957924dc58/funcs_single_sim.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">funcs_single_sim.ipynb</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2022, Sara Sommariva Elisabetta Vallarino.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.3.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

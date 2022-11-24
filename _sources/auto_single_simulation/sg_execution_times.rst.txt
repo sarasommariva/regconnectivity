@@ -1,0 +1,16 @@
+
+:orphan:
+
+.. _sphx_glr_auto_single_simulation_sg_execution_times:
+
+Computation times
+=================
+**66:00.137** total execution time for **auto_single_simulation** files:
+
++--------------------------------------------------------------------------------------------------+-----------+--------+
+| :ref:`sphx_glr_auto_single_simulation_plot_single_simulation.py` (``plot_single_simulation.py``) | 66:00.137 | 0.0 MB |
++--------------------------------------------------------------------------------------------------+-----------+--------+
+| :ref:`sphx_glr_auto_single_simulation_funcs_single_sim.py` (``funcs_single_sim.py``)             | 00:00.000 | 0.0 MB |
++--------------------------------------------------------------------------------------------------+-----------+--------+
+| :ref:`sphx_glr_auto_single_simulation_generate_fwd.py` (``generate_fwd.py``)                     | 00:00.000 | 0.0 MB |
++--------------------------------------------------------------------------------------------------+-----------+--------+

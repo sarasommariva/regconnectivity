@@ -1,0 +1,16 @@
+
+:orphan:
+
+.. _sphx_glr_auto_paper_results_sg_execution_times:
+
+Computation times
+=================
+**10:01.303** total execution time for **auto_paper_results** files:
+
++----------------------------------------------------------------------------------------------------+-----------+--------+
+| :ref:`sphx_glr_auto_paper_results_plot_illustrative_example.py` (``plot_illustrative_example.py``) | 09:07.155 | 0.0 MB |
++----------------------------------------------------------------------------------------------------+-----------+--------+
+| :ref:`sphx_glr_auto_paper_results_plot_cluster_results.py` (``plot_cluster_results.py``)           | 00:54.149 | 0.0 MB |
++----------------------------------------------------------------------------------------------------+-----------+--------+
+| :ref:`sphx_glr_auto_paper_results_funcs_single_sim.py` (``funcs_single_sim.py``)                   | 00:00.000 | 0.0 MB |
++----------------------------------------------------------------------------------------------------+-----------+--------+

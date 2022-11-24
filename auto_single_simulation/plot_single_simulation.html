@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Single simulation and parameters computation &#8212; reg-connectivity 0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          reg-connectivity</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="index.html">Single simulation</a></li>
+                <li><a href="../auto_paper_results/index.html">Paper results</a></li>
+                <li><a href="../auto_paper_cluster/index.html">Run on cluster</a></li>
+                <li><a href="https://github.com/sarasommariva/regconnectivity">GitHub</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/auto_single_simulation/plot_single_simulation.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-auto-single-simulation-plot-single-simulation-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
+</div>
+<section class="sphx-glr-example-title" id="single-simulation-and-parameters-computation">
+<span id="sphx-glr-auto-single-simulation-plot-single-simulation-py"></span><h1>Single simulation and parameters computation<a class="headerlink" href="#single-simulation-and-parameters-computation" title="Permalink to this heading">¶</a></h1>
+<p>This example shows how to simulate a sensor level MEG configuration and compute
+optimal parameters for neural activity and connectivity estimation</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">mne</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">optimize</span><span class="p">,</span> <span class="n">signal</span>
+<span class="kn">import</span> <span class="nn">funcs_single_sim</span> <span class="k">as</span> <span class="nn">funcs</span>
+<span class="kn">import</span> <span class="nn">pooch</span>
+
+<span class="n">subject_dir</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mne</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">data_path</span><span class="p">(),</span> <span class="s1">&#39;subjects&#39;</span><span class="p">)</span>
+<span class="n">subject</span> <span class="o">=</span> <span class="s1">&#39;sample&#39;</span>
+</pre></div>
+</div>
+<p>Define customizable features</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Standard deviation of the entries of the AR model (accepted values are:</span>
+<span class="c1"># ranging from 0.1 to 1)</span>
+<span class="n">alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mf">0.9</span><span class="o">+</span><span class="mf">0.1</span>
+<span class="c1"># area of the simulated patch in cm^2 (accepted values are: 2, 4, 8)</span>
+<span class="n">area</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="c1"># intra coherenc of the simulated patch (accepted values are: 1, 2, 4)</span>
+<span class="n">intra_coh</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># sensor level SNR in dB (accepted values are: ranging from -20 to 5)</span>
+<span class="n">SNR_sensors</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span>
+<span class="c1"># background activity (computed as the norm f the patches time cources over the</span>
+<span class="c1"># norm of the background time courses) (accepted values are: 0.1, 0.5, 0.9)</span>
+<span class="n">SNR_background</span> <span class="o">=</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<p>Download data (if not already downloaded or generated with generate_fwd.py)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data_path</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">op</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">data_path</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+
+<span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;cortico_dist_oct6.npy&#39;</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">op</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">fname</span><span class="p">)):</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://osf.io/download/37kaz/?direct%26mode=render&#39;</span>
+
+    <span class="n">pooch</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">known_hash</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="n">fname</span><span class="p">)</span>
+
+
+<span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;oct6_fwd.fif&#39;</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">op</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">fname</span><span class="p">)):</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://osf.io/download/7dfvm/?direct%26mode=render&#39;</span>
+
+    <span class="n">pooch</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">known_hash</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="n">fname</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Downloading data from &#39;https://osf.io/download/37kaz/?direct%26mode=render&#39; to file &#39;/home/alberto/Documents/regconnectivity/data/cortico_dist_oct6.npy&#39;.
+SHA256 hash of downloaded file: 3be6c4a963a912903a771963ea1876a0fe4f273f92e831ae9d3a13388a8f055d
+Use this value as the &#39;known_hash&#39; argument of &#39;pooch.retrieve&#39; to ensure that the file hasn&#39;t changed if it is downloaded again in the future.
+Downloading data from &#39;https://osf.io/download/7dfvm/?direct%26mode=render&#39; to file &#39;/home/alberto/Documents/regconnectivity/data/oct6_fwd.fif&#39;.
+SHA256 hash of downloaded file: b7080e28f95f50ccbf8f76452627da1b98f58ab1c8a96d92831fd5f5efb13005
+Use this value as the &#39;known_hash&#39; argument of &#39;pooch.retrieve&#39; to ensure that the file hasn&#39;t changed if it is downloaded again in the future.
+</pre></div>
+</div>
+<p>Load data</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># data path</span>
+<span class="n">fwd_file</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;oct6_fwd.fif&#39;</span><span class="p">)</span>
+
+<span class="c1"># load data</span>
+<span class="n">fwd</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">read_forward_solution</span><span class="p">(</span><span class="n">fwd_file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">fwd</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">convert_forward_solution</span><span class="p">(</span><span class="n">fwd</span><span class="p">,</span> <span class="n">surf_ori</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                   <span class="n">use_cps</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">fwd</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">pick_types_forward</span><span class="p">(</span><span class="n">fwd</span><span class="p">,</span> <span class="n">meg</span><span class="o">=</span><span class="s1">&#39;mag&#39;</span><span class="p">,</span> <span class="n">eeg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ref_meg</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># leadfield matrix</span>
+<span class="n">G</span> <span class="o">=</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;sol&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+<span class="n">G</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="mi">5</span><span class="o">*</span><span class="n">G</span>
+<span class="n">GGt</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">U</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+<span class="n">V</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">T</span>
+
+<span class="c1"># dipols position</span>
+<span class="n">dip_pos</span> <span class="o">=</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;source_rr&#39;</span><span class="p">]</span>
+
+<span class="c1"># dipols orientations</span>
+<span class="n">dip_or</span> <span class="o">=</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;source_nn&#39;</span><span class="p">]</span>
+
+<span class="c1"># Source space</span>
+<span class="n">src</span> <span class="o">=</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">]</span>
+
+<span class="c1"># vertex indeces</span>
+<span class="n">vertno</span> <span class="o">=</span> <span class="p">[</span><span class="n">src</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;vertno&#39;</span><span class="p">],</span> <span class="n">src</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;vertno&#39;</span><span class="p">]]</span>
+
+<span class="c1"># load cortico-cortical distance matrix</span>
+<span class="n">cortico_dist_file</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;cortico_dist_oct6.npy&#39;</span><span class="p">)</span>
+<span class="n">cortico_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cortico_dist_file</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>102 out of 306 channels remain after picking
+</pre></div>
+</div>
+<p>Define additional features</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">T</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span>  <span class="c1"># Number of time points</span>
+<span class="n">fs</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>  <span class="c1"># Samples frequency</span>
+
+<span class="c1"># range for filtering the data</span>
+<span class="n">fmin</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">fmax</span> <span class="o">=</span> <span class="mi">12</span>
+
+<span class="n">delta_t</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">fs</span>  <span class="c1"># Time resolution</span>
+<span class="n">M</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># Number of sensor</span>
+<span class="n">N_dense</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># Number of sources in source space</span>
+<span class="n">N_act</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Number of active patches</span>
+<span class="n">P</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># MVAR order</span>
+<span class="n">ratio_max</span> <span class="o">=</span> <span class="mf">1.5</span>  <span class="c1"># Ratio max between the intensities of the seed sources of the</span>
+                 <span class="c1"># active patches</span>
+
+<span class="c1"># store relevant features</span>
+<span class="n">features</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="n">T</span><span class="p">,</span>
+            <span class="s1">&#39;fs&#39;</span><span class="p">:</span> <span class="n">fs</span><span class="p">,</span>
+            <span class="s1">&#39;fmin&#39;</span><span class="p">:</span> <span class="n">fmin</span><span class="p">,</span>
+            <span class="s1">&#39;fmax&#39;</span><span class="p">:</span> <span class="n">fmax</span><span class="p">,</span>
+            <span class="s1">&#39;N_act&#39;</span><span class="p">:</span> <span class="n">N_act</span><span class="p">,</span>
+            <span class="s1">&#39;SNR_sensors&#39;</span><span class="p">:</span> <span class="n">SNR_sensors</span><span class="p">,</span>
+            <span class="s1">&#39;area&#39;</span><span class="p">:</span> <span class="n">area</span><span class="p">,</span>
+            <span class="s1">&#39;intra_coh&#39;</span><span class="p">:</span> <span class="n">intra_coh</span><span class="p">,</span>
+            <span class="s1">&#39;SNR_backgroud&#39;</span><span class="p">:</span> <span class="n">SNR_background</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Define sources location</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Select a pais of sources satisfying specific requirements</span>
+<span class="n">seed_loc</span> <span class="o">=</span> <span class="n">funcs</span><span class="o">.</span><span class="n">select_sources</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">dip_pos</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># Define patch radius from the desired area</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">area</span><span class="o">*</span><span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">)</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>  <span class="c1"># radius of the patch (maximum distance</span>
+                                    <span class="c1"># from the seed in meters)</span>
+
+<span class="c1"># Define the location of the sources within the patches</span>
+<span class="n">p1_locs</span><span class="p">,</span> <span class="n">p2_locs</span> <span class="o">=</span> <span class="n">funcs</span><span class="o">.</span><span class="n">gen_patches_sources</span><span class="p">(</span><span class="n">cortico_dist</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">seed_loc</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Plot patches on the brain</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note that plot perspective might not be optimal, when downloading
+the codes plots are interavtive and perspectives can be changed.</p>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">view</span> <span class="o">=</span> <span class="s1">&#39;axial&#39;</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">G</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+<span class="n">stc</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">SourceEstimate</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="n">vertno</span><span class="p">,</span> <span class="n">tmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">)</span>
+
+<span class="n">hemi</span> <span class="o">=</span> <span class="s1">&#39;both&#39;</span>
+<span class="n">brain</span> <span class="o">=</span> <span class="n">stc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">surface</span><span class="o">=</span><span class="s1">&#39;inflated&#39;</span><span class="p">,</span> <span class="n">smoothing_steps</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                 <span class="n">hemi</span><span class="o">=</span><span class="n">hemi</span><span class="p">,</span> <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subject_dir</span><span class="p">,</span> <span class="n">time_viewer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">colorbar</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">views</span><span class="o">=</span><span class="n">view</span><span class="p">)</span>
+
+<span class="n">nv_lh</span> <span class="o">=</span> <span class="n">stc</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">loc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">loc</span> <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">p1_locs</span><span class="p">]):</span>
+    <span class="k">if</span> <span class="n">loc</span> <span class="o">&lt;</span> <span class="n">nv_lh</span><span class="p">:</span>
+        <span class="n">brain</span><span class="o">.</span><span class="n">add_foci</span><span class="p">(</span><span class="n">stc</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">loc</span><span class="p">],</span> <span class="n">coords_as_verts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                       <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;lh&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">brain</span><span class="o">.</span><span class="n">add_foci</span><span class="p">(</span><span class="n">stc</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">loc</span><span class="o">-</span><span class="n">nv_lh</span><span class="p">],</span> <span class="n">coords_as_verts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                       <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;rh&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+<span class="n">nv_lh</span> <span class="o">=</span> <span class="n">stc</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">loc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">loc</span> <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">p2_locs</span><span class="p">]):</span>
+    <span class="k">if</span> <span class="n">loc</span> <span class="o">&lt;</span> <span class="n">nv_lh</span><span class="p">:</span>
+        <span class="n">brain</span><span class="o">.</span><span class="n">add_foci</span><span class="p">(</span><span class="n">stc</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">loc</span><span class="p">],</span> <span class="n">coords_as_verts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                       <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;lh&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">brain</span><span class="o">.</span><span class="n">add_foci</span><span class="p">(</span><span class="n">stc</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">loc</span><span class="o">-</span><span class="n">nv_lh</span><span class="p">],</span> <span class="n">coords_as_verts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                       <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;rh&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+<span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Active patches location&#39;</span>
+<span class="n">brain</span><span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+</pre></div>
+</div>
+<img src="../_images/sphx_glr_plot_single_simulation_001.png" srcset="../_images/sphx_glr_plot_single_simulation_001.png" alt="plot single simulation" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Using pyvistaqt 3d backend.
+
+Using control points [0. 0. 0.]
+/home/alberto/Documents/regconnectivity/examples_single_simulation/plot_single_simulation.py:158: RuntimeWarning: All data were zero
+  colorbar=False, views=view)
+</pre></div>
+</div>
+<p>Simulate brain activity</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Step 1: simulate a pair of MVAR time courses</span>
+<span class="c1">#</span>
+<span class="c1"># The generated time courses must satisfy two criteria:</span>
+<span class="c1"># 1) the ratio between the norms is lower than ratio_max</span>
+<span class="c1">#</span>
+<span class="c1"># 2) the power spectrum in the frequency range of interest is high enough</span>
+
+
+<span class="c1"># initialize the time courses</span>
+<span class="n">seed_tc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N_act</span><span class="p">,</span> <span class="n">T</span><span class="p">))</span>
+
+<span class="n">nperseg</span> <span class="o">=</span> <span class="mi">256</span>  <span class="c1"># length of the window for the fourier transform</span>
+<span class="n">nfft</span> <span class="o">=</span> <span class="n">nperseg</span>  <span class="c1"># number of frequencies</span>
+
+<span class="n">power_condition</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">while</span> <span class="n">power_condition</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+    <span class="c1"># generate MVAR time courses until they meet the condition on the norm</span>
+    <span class="k">while</span> <span class="n">ratio</span> <span class="o">&gt;</span> <span class="n">ratio_max</span><span class="p">:</span>
+        <span class="n">AR_mod</span> <span class="o">=</span> <span class="n">funcs</span><span class="o">.</span><span class="n">gen_ar_model</span><span class="p">(</span><span class="n">N_act</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>  <span class="c1"># generate MVAR model</span>
+        <span class="n">X_act</span><span class="p">,</span> <span class="n">AR_mod</span> <span class="o">=</span> <span class="n">funcs</span><span class="o">.</span><span class="n">gen_ar_series</span><span class="p">(</span><span class="n">AR_mod</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>  <span class="c1"># generate MVAR time</span>
+                                                        <span class="c1"># courses</span>
+        <span class="n">norm_X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">X_act</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># compute norm</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="n">norm_X</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">norm_X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># retain pairs of time courses whose</span>
+                                      <span class="c1"># intensities are close</span>
+                                      <span class="c1"># (int_max/int_min &lt; ratio_max)</span>
+
+    <span class="c1"># normalize the time series so that different pairs have similar intensity</span>
+    <span class="c1"># (this was important in the paper simulation where more than one pair of</span>
+    <span class="c1"># time courses were simulated)</span>
+    <span class="n">norm_const</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">X_act</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">X_act</span> <span class="o">=</span> <span class="n">X_act</span><span class="o">/</span><span class="n">norm_const</span>
+
+    <span class="c1"># compute power spectrum in the freq range of interest</span>
+    <span class="n">f</span><span class="p">,</span> <span class="n">Pwe</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">welch</span><span class="p">(</span><span class="n">X_act</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="s1">&#39;hann&#39;</span><span class="p">,</span> <span class="n">nperseg</span><span class="o">=</span><span class="n">nperseg</span><span class="p">,</span>
+                          <span class="n">noverlap</span><span class="o">=</span><span class="n">nperseg</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">nfft</span><span class="o">=</span><span class="n">nfft</span><span class="p">,</span> <span class="n">detrend</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span>
+                          <span class="n">return_onesided</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scaling</span><span class="o">=</span><span class="s1">&#39;density&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">P_tot</span> <span class="o">=</span> <span class="n">Pwe</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">Pwe</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">f_in</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">f</span> <span class="o">&gt;=</span> <span class="n">fmin</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">f</span> <span class="o">&lt;=</span> <span class="n">fmax</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># retain only time courses with sufficiently high power in the frequency</span>
+    <span class="c1"># range of interest</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">P_tot</span><span class="p">[</span><span class="n">f_in</span><span class="p">])</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">f_in</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">P_tot</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+        <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">8</span><span class="p">,</span> <span class="mi">12</span><span class="p">]),</span> <span class="n">btype</span><span class="o">=</span><span class="s1">&#39;bandpass&#39;</span><span class="p">,</span>
+                             <span class="n">analog</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;ba&#39;</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+        <span class="n">X_act</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">filtfilt</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">X_act</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">padtype</span><span class="o">=</span><span class="s1">&#39;odd&#39;</span><span class="p">,</span>
+                                <span class="n">padlen</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;pad&#39;</span><span class="p">,</span> <span class="n">irlen</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">seed_tc</span><span class="p">[:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">X_act</span>
+        <span class="n">power_condition</span> <span class="o">=</span> <span class="mi">1</span>
+
+
+<span class="c1"># Step 2: generate patch activity</span>
+<span class="c1"># Generate the time courses associated with the sources within the patches, so</span>
+<span class="c1"># that they have the desired intracoherence level.</span>
+
+<span class="n">p1_tcs</span><span class="p">,</span> <span class="n">p2_tcs</span> <span class="o">=</span> <span class="n">funcs</span><span class="o">.</span><span class="n">gen_coherent_patches</span><span class="p">(</span><span class="n">seed_tc</span><span class="p">,</span> <span class="n">p1_locs</span><span class="p">,</span> <span class="n">p2_locs</span><span class="p">,</span>
+                                            <span class="n">intra_coh</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">nperseg</span><span class="p">,</span> <span class="n">nfft</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span>
+                                            <span class="n">fmin</span><span class="p">,</span> <span class="n">fmax</span><span class="p">)</span>
+
+
+<span class="c1"># Step 3: generate background activtiy (it takes a while)</span>
+<span class="c1"># To each source outside the patche is assigned a time course following an AR</span>
+<span class="c1"># model of order 5. The overall activity of the background sources is then</span>
+<span class="c1"># normalized to obtain the desired SNR level</span>
+
+<span class="c1"># locations of background sources</span>
+<span class="n">bg_locs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N_dense</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">p1_locs</span><span class="p">,</span> <span class="n">p2_locs</span><span class="p">)))</span>
+<span class="c1"># generate background time courses exploiting an AR model</span>
+<span class="n">bg_tcs_general</span> <span class="o">=</span> <span class="n">funcs</span><span class="o">.</span><span class="n">gen_background_tcs</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">bg_locs</span><span class="p">),</span> <span class="n">T</span><span class="p">)</span>
+
+
+<span class="c1"># define the norm of patches and background activity to define the snr between</span>
+<span class="c1"># patches and bg</span>
+<span class="n">patches_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">p1_tcs</span><span class="p">,</span> <span class="n">p2_tcs</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                              <span class="nb">ord</span><span class="o">=</span><span class="s1">&#39;fro&#39;</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+<span class="n">bg_norm_general</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">bg_tcs_general</span><span class="p">,</span> <span class="nb">ord</span><span class="o">=</span><span class="s1">&#39;fro&#39;</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+<span class="c1"># scale background time coursed to obtain the desired snr level</span>
+<span class="n">bg_tcs</span> <span class="o">=</span> <span class="n">bg_tcs_general</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">patches_norm</span><span class="o">/</span><span class="n">bg_norm_general</span><span class="p">)</span><span class="o">/</span><span class="n">SNR_background</span><span class="p">)</span>
+
+
+<span class="c1"># Step 4: store the genarate data in a single matrix</span>
+
+<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N_dense</span><span class="p">,</span> <span class="n">T</span><span class="p">))</span>
+<span class="n">X</span><span class="p">[</span><span class="n">bg_locs</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">bg_tcs</span>
+<span class="n">X</span><span class="p">[</span><span class="n">p1_locs</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">p1_tcs</span>
+<span class="n">X</span><span class="p">[</span><span class="n">p2_locs</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">p2_tcs</span>
+</pre></div>
+</div>
+<p>Generate sensor level recordings</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># generate white gaussian noise</span>
+<span class="n">N_tilde</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+
+<span class="c1"># scale the noise to obtain the desired SNR</span>
+<span class="n">Sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="nb">ord</span><span class="o">=</span><span class="s1">&#39;fro&#39;</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="n">SNR_sensors</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span>
+                <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">N_tilde</span><span class="p">,</span> <span class="nb">ord</span><span class="o">=</span><span class="s1">&#39;fro&#39;</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">N</span> <span class="o">=</span> <span class="n">Sigma</span><span class="o">*</span><span class="n">N_tilde</span>
+
+<span class="c1"># generate sensor level recordings</span>
+<span class="n">Y</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">+</span><span class="n">N</span>
+</pre></div>
+</div>
+<p>Store the generated data</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Y</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;sees_loc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">seed_loc</span>
+</pre></div>
+</div>
+<p>Compute optimal parameters</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># number of parameters to be tested to find the optimal one for connectivity</span>
+<span class="c1"># estimation</span>
+<span class="n">n_lambdas</span> <span class="o">=</span> <span class="mi">15</span>
+
+<span class="c1"># initialize the dictionary where to store parameters, TPF and FPF related to</span>
+<span class="c1"># connectivity estimation, and the variance of the noise</span>
+<span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tc&#39;</span><span class="p">:</span> <span class="p">[],</span>
+              <span class="s1">&#39;conn&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="n">n_lambdas</span><span class="p">)),</span>
+              <span class="s1">&#39;TPF_conn&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_lambdas</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">20</span><span class="p">)),</span>
+              <span class="s1">&#39;FPF_conn&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_lambdas</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">20</span><span class="p">)),</span>
+              <span class="s1">&#39;sigma_noise&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+</pre></div>
+</div>
+<p>Optimal parameter for neural activity estimation</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># define startin point used by the minimize function to find the optimal</span>
+<span class="c1"># parameter</span>
+<span class="n">input_lamX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="nb">ord</span><span class="o">=</span><span class="s1">&#39;fro&#39;</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">),</span>
+                                                            <span class="nb">ord</span><span class="o">=</span><span class="s1">&#39;fro&#39;</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+<span class="c1"># find the optimal parameter</span>
+<span class="n">opt_set</span> <span class="o">=</span> <span class="n">optimize</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">funcs</span><span class="o">.</span><span class="n">err_X</span><span class="p">,</span> <span class="n">input_lamX</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">GGt</span><span class="p">),</span>
+                            <span class="n">method</span><span class="o">=</span><span class="s1">&#39;Nelder-Mead&#39;</span><span class="p">)</span>
+<span class="n">lamX</span> <span class="o">=</span> <span class="n">opt_set</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Optimal parameters for connecttivity estimation</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># define the parameter to be tested to find the optimal one for connectivity</span>
+<span class="c1"># estimation, the parameters are defined as multiples of the optimal parameter</span>
+<span class="c1"># for neural activity estimation</span>
+<span class="n">lambdas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">n_lambdas</span><span class="p">)</span><span class="o">*</span><span class="n">lamX</span>
+
+<span class="c1"># define the matrix of positives and negatives (positives=1, negtives=0) for</span>
+<span class="c1"># connectivity, if the (i,j)-th entry of the matrix assumes value 1 (0)</span>
+<span class="c1"># indicate that there is (there is not) connection between source i and j</span>
+<span class="n">PN_matrix_conn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p1_locs</span><span class="p">),</span> <span class="n">N_dense</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+<span class="n">PN_matrix_conn</span><span class="p">[:,</span> <span class="n">p2_locs</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p1_locs</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">p2_locs</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+<span class="n">PN_matrix_conn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">PN_matrix_conn</span><span class="p">,</span> <span class="n">p1_locs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># initialize matrices of true positive and false positive fractions</span>
+<span class="n">TPF_conn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_lambdas</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>  <span class="c1"># dimension:</span>
+                                         <span class="c1"># n_lambdas x conn_meths x thresholds</span>
+<span class="n">FPF_conn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_lambdas</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>  <span class="c1"># dimension:</span>
+                                         <span class="c1"># n_lambdas x conn_meths x thresholds</span>
+<span class="n">AUC_conn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_lambdas</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>  <span class="c1"># dimension: n_lambdas x conn_meths</span>
+
+
+<span class="c1"># compute the AUC value for each tested parameter and for each connectivity</span>
+<span class="c1"># matrix</span>
+<span class="k">for</span> <span class="n">i_lam</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_lambdas</span><span class="p">):</span>
+    <span class="n">AUC_conn</span><span class="p">[</span><span class="n">i_lam</span><span class="p">,</span> <span class="p">:],</span> <span class="n">TPF_conn</span><span class="p">[</span><span class="n">i_lam</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="n">FPF_conn</span><span class="p">[</span><span class="n">i_lam</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> \
+        <span class="n">funcs</span><span class="o">.</span><span class="n">auc</span><span class="p">(</span><span class="n">lambdas</span><span class="p">[</span><span class="n">i_lam</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;cpsd&#39;</span><span class="p">,</span> <span class="s1">&#39;imcoh&#39;</span><span class="p">,</span> <span class="s1">&#39;ciplv&#39;</span><span class="p">,</span> <span class="s1">&#39;wpli&#39;</span><span class="p">],</span> <span class="n">G</span><span class="p">,</span> <span class="n">GGt</span><span class="p">,</span>
+                  <span class="n">Y</span><span class="p">,</span> <span class="n">p1_locs</span><span class="p">,</span> <span class="n">p2_locs</span><span class="p">,</span> <span class="n">fmin</span><span class="p">,</span> <span class="n">fmax</span><span class="p">,</span> <span class="n">PN_matrix_conn</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">nperseg</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Connectivity computation...
+    computing connectivity for 298420 connections
+    using t=0.000s..1.992s for estimation (256 points)
+    frequencies: 8.0Hz..12.0Hz (9 points)
+    using FFT with a Hanning window to estimate spectra
+    the following metrics will be computed: Imaginary Coherence, ciPLV, WPLI
+    computing connectivity for epoch 1
+    computing connectivity for epoch 2
+    computing connectivity for epoch 3
+    computing connectivity for epoch 4
+    computing connectivity for epoch 5
+    computing connectivity for epoch 6
+    computing connectivity for epoch 7
+    computing connectivity for epoch 8
+    computing connectivity for epoch 9
+    computing connectivity for epoch 10
+    computing connectivity for epoch 11
+    computing connectivity for epoch 12
+    computing connectivity for epoch 13
+    computing connectivity for epoch 14
+    computing connectivity for epoch 15
+    computing connectivity for epoch 16
+    computing connectivity for epoch 17
+    computing connectivity for epoch 18
+    computing connectivity for epoch 19
+    computing connectivity for epoch 20
+    computing connectivity for epoch 21
+    computing connectivity for epoch 22
+    computing connectivity for epoch 23
+    computing connectivity for epoch 24
+    computing connectivity for epoch 25
+    computing connectivity for epoch 26
+    computing connectivity for epoch 27
+    computing connectivity for epoch 28
+    computing connectivity for epoch 29
+    computing connectivity for epoch 30
+    computing connectivity for epoch 31
+    computing connectivity for epoch 32
+    computing connectivity for epoch 33
+    computing connectivity for epoch 34
+    computing connectivity for epoch 35
+    computing connectivity for epoch 36
+    computing connectivity for epoch 37
+    computing connectivity for epoch 38
+    computing connectivity for epoch 39
+    computing connectivity for epoch 40
+    computing connectivity for epoch 41
+    computing connectivity for epoch 42
+    computing connectivity for epoch 43
+    computing connectivity for epoch 44
+    computing connectivity for epoch 45
+    computing connectivity for epoch 46
+    computing connectivity for epoch 47
+    computing connectivity for epoch 48
+    computing connectivity for epoch 49
+    computing connectivity for epoch 50
+    computing connectivity for epoch 51
+    computing connectivity for epoch 52
+    computing connectivity for epoch 53
+    computing connectivity for epoch 54
+    computing connectivity for epoch 55
+    computing connectivity for epoch 56
+    computing connectivity for epoch 57
+    computing connectivity for epoch 58
+    computing connectivity for epoch 59
+    computing connectivity for epoch 60
+    computing connectivity for epoch 61
+    computing connectivity for epoch 62
+    computing connectivity for epoch 63
+    computing connectivity for epoch 64
+    computing connectivity for epoch 65
+    computing connectivity for epoch 66
+    computing connectivity for epoch 67
+    computing connectivity for epoch 68
+    computing connectivity for epoch 69
+    computing connectivity for epoch 70
+    computing connectivity for epoch 71
+    computing connectivity for epoch 72
+    computing connectivity for epoch 73
+    computing connectivity for epoch 74
+    computing connectivity for epoch 75
+    computing connectivity for epoch 76
+    computing connectivity for epoch 77
+[Connectivity computation done]
+Connectivity computation...
+    computing connectivity for 298420 connections
+    using t=0.000s..1.992s for estimation (256 points)
+    frequencies: 8.0Hz..12.0Hz (9 points)
+    using FFT with a Hanning window to estimate spectra
+    the following metrics will be computed: Imaginary Coherence, ciPLV, WPLI
+    computing connectivity for epoch 1
+    computing connectivity for epoch 2
+    computing connectivity for epoch 3
+    computing connectivity for epoch 4
+    computing connectivity for epoch 5
+    computing connectivity for epoch 6
+    computing connectivity for epoch 7
+    computing connectivity for epoch 8
+    computing connectivity for epoch 9
+    computing connectivity for epoch 10
+    computing connectivity for epoch 11
+    computing connectivity for epoch 12
+    computing connectivity for epoch 13
+    computing connectivity for epoch 14
+    computing connectivity for epoch 15
+    computing connectivity for epoch 16
+    computing connectivity for epoch 17
+    computing connectivity for epoch 18
+    computing connectivity for epoch 19
+    computing connectivity for epoch 20
+    computing connectivity for epoch 21
+    computing connectivity for epoch 22
+    computing connectivity for epoch 23
+    computing connectivity for epoch 24
+    computing connectivity for epoch 25
+    computing connectivity for epoch 26
+    computing connectivity for epoch 27
+    computing connectivity for epoch 28
+    computing connectivity for epoch 29
+    computing connectivity for epoch 30
+    computing connectivity for epoch 31
+    computing connectivity for epoch 32
+    computing connectivity for epoch 33
+    computing connectivity for epoch 34
+    computing connectivity for epoch 35
+    computing connectivity for epoch 36
+    computing connectivity for epoch 37
+    computing connectivity for epoch 38
+    computing connectivity for epoch 39
+    computing connectivity for epoch 40
+    computing connectivity for epoch 41
+    computing connectivity for epoch 42
+    computing connectivity for epoch 43
+    computing connectivity for epoch 44
+    computing connectivity for epoch 45
+    computing connectivity for epoch 46
+    computing connectivity for epoch 47
+    computing connectivity for epoch 48
+    computing connectivity for epoch 49
+    computing connectivity for epoch 50
+    computing connectivity for epoch 51
+    computing connectivity for epoch 52
+    computing connectivity for epoch 53
+    computing connectivity for epoch 54
+    computing connectivity for epoch 55
+    computing connectivity for epoch 56
+    computing connectivity for epoch 57
+    computing connectivity for epoch 58
+    computing connectivity for epoch 59
+    computing connectivity for epoch 60
+    computing connectivity for epoch 61
+    computing connectivity for epoch 62
+    computing connectivity for epoch 63
+    computing connectivity for epoch 64
+    computing connectivity for epoch 65
+    computing connectivity for epoch 66
+    computing connectivity for epoch 67
+    computing connectivity for epoch 68
+    computing connectivity for epoch 69
+    computing connectivity for epoch 70
+    computing connectivity for epoch 71
+    computing connectivity for epoch 72
+    computing connectivity for epoch 73
+    computing connectivity for epoch 74
+    computing connectivity for epoch 75
+    computing connectivity for epoch 76
+    computing connectivity for epoch 77
+[Connectivity computation done]
+Connectivity computation...
+    computing connectivity for 298420 connections
+    using t=0.000s..1.992s for estimation (256 points)
+    frequencies: 8.0Hz..12.0Hz (9 points)
+    using FFT with a Hanning window to estimate spectra
+    the following metrics will be computed: Imaginary Coherence, ciPLV, WPLI
+    computing connectivity for epoch 1
+    computing connectivity for epoch 2
+    computing connectivity for epoch 3
+    computing connectivity for epoch 4
+    computing connectivity for epoch 5
+    computing connectivity for epoch 6
+    computing connectivity for epoch 7
+    computing connectivity for epoch 8
+    computing connectivity for epoch 9
+    computing connectivity for epoch 10
+    computing connectivity for epoch 11
+    computing connectivity for epoch 12
+    computing connectivity for epoch 13
+    computing connectivity for epoch 14
+    computing connectivity for epoch 15
+    computing connectivity for epoch 16
+    computing connectivity for epoch 17
+    computing connectivity for epoch 18
+    computing connectivity for epoch 19
+    computing connectivity for epoch 20
+    computing connectivity for epoch 21
+    computing connectivity for epoch 22
+    computing connectivity for epoch 23
+    computing connectivity for epoch 24
+    computing connectivity for epoch 25
+    computing connectivity for epoch 26
+    computing connectivity for epoch 27
+    computing connectivity for epoch 28
+    computing connectivity for epoch 29
+    computing connectivity for epoch 30
+    computing connectivity for epoch 31
+    computing connectivity for epoch 32
+    computing connectivity for epoch 33
+    computing connectivity for epoch 34
+    computing connectivity for epoch 35
+    computing connectivity for epoch 36
+    computing connectivity for epoch 37
+    computing connectivity for epoch 38
+    computing connectivity for epoch 39
+    computing connectivity for epoch 40
+    computing connectivity for epoch 41
+    computing connectivity for epoch 42
+    computing connectivity for epoch 43
+    computing connectivity for epoch 44
+    computing connectivity for epoch 45
+    computing connectivity for epoch 46
+    computing connectivity for epoch 47
+    computing connectivity for epoch 48
+    computing connectivity for epoch 49
+    computing connectivity for epoch 50
+    computing connectivity for epoch 51
+    computing connectivity for epoch 52
+    computing connectivity for epoch 53
+    computing connectivity for epoch 54
+    computing connectivity for epoch 55
+    computing connectivity for epoch 56
+    computing connectivity for epoch 57
+    computing connectivity for epoch 58
+    computing connectivity for epoch 59
+    computing connectivity for epoch 60
+    computing connectivity for epoch 61
+    computing connectivity for epoch 62
+    computing connectivity for epoch 63
+    computing connectivity for epoch 64
+    computing connectivity for epoch 65
+    computing connectivity for epoch 66
+    computing connectivity for epoch 67
+    computing connectivity for epoch 68
+    computing connectivity for epoch 69
+    computing connectivity for epoch 70
+    computing connectivity for epoch 71
+    computing connectivity for epoch 72
+    computing connectivity for epoch 73
+    computing connectivity for epoch 74
+    computing connectivity for epoch 75
+    computing connectivity for epoch 76
+    computing connectivity for epoch 77
+[Connectivity computation done]
+Connectivity computation...
+    computing connectivity for 298420 connections
+    using t=0.000s..1.992s for estimation (256 points)
+    frequencies: 8.0Hz..12.0Hz (9 points)
+    using FFT with a Hanning window to estimate spectra
+    the following metrics will be computed: Imaginary Coherence, ciPLV, WPLI
+    computing connectivity for epoch 1
+    computing connectivity for epoch 2
+    computing connectivity for epoch 3
+    computing connectivity for epoch 4
+    computing connectivity for epoch 5
+    computing connectivity for epoch 6
+    computing connectivity for epoch 7
+    computing connectivity for epoch 8
+    computing connectivity for epoch 9
+    computing connectivity for epoch 10
+    computing connectivity for epoch 11
+    computing connectivity for epoch 12
+    computing connectivity for epoch 13
+    computing connectivity for epoch 14
+    computing connectivity for epoch 15
+    computing connectivity for epoch 16
+    computing connectivity for epoch 17
+    computing connectivity for epoch 18
+    computing connectivity for epoch 19
+    computing connectivity for epoch 20
+    computing connectivity for epoch 21
+    computing connectivity for epoch 22
+    computing connectivity for epoch 23
+    computing connectivity for epoch 24
+    computing connectivity for epoch 25
+    computing connectivity for epoch 26
+    computing connectivity for epoch 27
+    computing connectivity for epoch 28
+    computing connectivity for epoch 29
+    computing connectivity for epoch 30
+    computing connectivity for epoch 31
+    computing connectivity for epoch 32
+    computing connectivity for epoch 33
+    computing connectivity for epoch 34
+    computing connectivity for epoch 35
+    computing connectivity for epoch 36
+    computing connectivity for epoch 37
+    computing connectivity for epoch 38
+    computing connectivity for epoch 39
+    computing connectivity for epoch 40
+    computing connectivity for epoch 41
+    computing connectivity for epoch 42
+    computing connectivity for epoch 43
+    computing connectivity for epoch 44
+    computing connectivity for epoch 45
+    computing connectivity for epoch 46
+    computing connectivity for epoch 47
+    computing connectivity for epoch 48
+    computing connectivity for epoch 49
+    computing connectivity for epoch 50
+    computing connectivity for epoch 51
+    computing connectivity for epoch 52
+    computing connectivity for epoch 53
+    computing connectivity for epoch 54
+    computing connectivity for epoch 55
+    computing connectivity for epoch 56
+    computing connectivity for epoch 57
+    computing connectivity for epoch 58
+    computing connectivity for epoch 59
+    computing connectivity for epoch 60
+    computing connectivity for epoch 61
+    computing connectivity for epoch 62
+    computing connectivity for epoch 63
+    computing connectivity for epoch 64
+    computing connectivity for epoch 65
+    computing connectivity for epoch 66
+    computing connectivity for epoch 67
+    computing connectivity for epoch 68
+    computing connectivity for epoch 69
+    computing connectivity for epoch 70
+    computing connectivity for epoch 71
+    computing connectivity for epoch 72
+    computing connectivity for epoch 73
+    computing connectivity for epoch 74
+    computing connectivity for epoch 75
+    computing connectivity for epoch 76
+    computing connectivity for epoch 77
+[Connectivity computation done]
+Connectivity computation...
+    computing connectivity for 298420 connections
+    using t=0.000s..1.992s for estimation (256 points)
+    frequencies: 8.0Hz..12.0Hz (9 points)
+    using FFT with a Hanning window to estimate spectra
+    the following metrics will be computed: Imaginary Coherence, ciPLV, WPLI
+    computing connectivity for epoch 1
+    computing connectivity for epoch 2
+    computing connectivity for epoch 3
+    computing connectivity for epoch 4
+    computing connectivity for epoch 5
+    computing connectivity for epoch 6
+    computing connectivity for epoch 7
+    computing connectivity for epoch 8
+    computing connectivity for epoch 9
+    computing connectivity for epoch 10
+    computing connectivity for epoch 11
+    computing connectivity for epoch 12
+    computing connectivity for epoch 13
+    computing connectivity for epoch 14
+    computing connectivity for epoch 15
+    computing connectivity for epoch 16
+    computing connectivity for epoch 17
+    computing connectivity for epoch 18
+    computing connectivity for epoch 19
+    computing connectivity for epoch 20
+    computing connectivity for epoch 21
+    computing connectivity for epoch 22
+    computing connectivity for epoch 23
+    computing connectivity for epoch 24
+    computing connectivity for epoch 25
+    computing connectivity for epoch 26
+    computing connectivity for epoch 27
+    computing connectivity for epoch 28
+    computing connectivity for epoch 29
+    computing connectivity for epoch 30
+    computing connectivity for epoch 31
+    computing connectivity for epoch 32
+    computing connectivity for epoch 33
+    computing connectivity for epoch 34
+    computing connectivity for epoch 35
+    computing connectivity for epoch 36
+    computing connectivity for epoch 37
+    computing connectivity for epoch 38
+    computing connectivity for epoch 39
+    computing connectivity for epoch 40
+    computing connectivity for epoch 41
+    computing connectivity for epoch 42
+    computing connectivity for epoch 43
+    computing connectivity for epoch 44
+    computing connectivity for epoch 45
+    computing connectivity for epoch 46
+    computing connectivity for epoch 47
+    computing connectivity for epoch 48
+    computing connectivity for epoch 49
+    computing connectivity for epoch 50
+    computing connectivity for epoch 51
+    computing connectivity for epoch 52
+    computing connectivity for epoch 53
+    computing connectivity for epoch 54
+    computing connectivity for epoch 55
+    computing connectivity for epoch 56
+    computing connectivity for epoch 57
+    computing connectivity for epoch 58
+    computing connectivity for epoch 59
+    computing connectivity for epoch 60
+    computing connectivity for epoch 61
+    computing connectivity for epoch 62
+    computing connectivity for epoch 63
+    computing connectivity for epoch 64
+    computing connectivity for epoch 65
+    computing connectivity for epoch 66
+    computing connectivity for epoch 67
+    computing connectivity for epoch 68
+    computing connectivity for epoch 69
+    computing connectivity for epoch 70
+    computing connectivity for epoch 71
+    computing connectivity for epoch 72
+    computing connectivity for epoch 73
+    computing connectivity for epoch 74
+    computing connectivity for epoch 75
+    computing connectivity for epoch 76
+    computing connectivity for epoch 77
+[Connectivity computation done]
+Connectivity computation...
+    computing connectivity for 298420 connections
+    using t=0.000s..1.992s for estimation (256 points)
+    frequencies: 8.0Hz..12.0Hz (9 points)
+    using FFT with a Hanning window to estimate spectra
+    the following metrics will be computed: Imaginary Coherence, ciPLV, WPLI
+    computing connectivity for epoch 1
+    computing connectivity for epoch 2
+    computing connectivity for epoch 3
+    computing connectivity for epoch 4
+    computing connectivity for epoch 5
+    computing connectivity for epoch 6
+    computing connectivity for epoch 7
+    computing connectivity for epoch 8
+    computing connectivity for epoch 9
+    computing connectivity for epoch 10
+    computing connectivity for epoch 11
+    computing connectivity for epoch 12
+    computing connectivity for epoch 13
+    computing connectivity for epoch 14
+    computing connectivity for epoch 15
+    computing connectivity for epoch 16
+    computing connectivity for epoch 17
+    computing connectivity for epoch 18
+    computing connectivity for epoch 19
+    computing connectivity for epoch 20
+    computing connectivity for epoch 21
+    computing connectivity for epoch 22
+    computing connectivity for epoch 23
+    computing connectivity for epoch 24
+    computing connectivity for epoch 25
+    computing connectivity for epoch 26
+    computing connectivity for epoch 27
+    computing connectivity for epoch 28
+    computing connectivity for epoch 29
+    computing connectivity for epoch 30
+    computing connectivity for epoch 31
+    computing connectivity for epoch 32
+    computing connectivity for epoch 33
+    computing connectivity for epoch 34
+    computing connectivity for epoch 35
+    computing connectivity for epoch 36
+    computing connectivity for epoch 37
+    computing connectivity for epoch 38
+    computing connectivity for epoch 39
+    computing connectivity for epoch 40
+    computing connectivity for epoch 41
+    computing connectivity for epoch 42
+    computing connectivity for epoch 43
+    computing connectivity for epoch 44
+    computing connectivity for epoch 45
+    computing connectivity for epoch 46
+    computing connectivity for epoch 47
+    computing connectivity for epoch 48
+    computing connectivity for epoch 49
+    computing connectivity for epoch 50
+    computing connectivity for epoch 51
+    computing connectivity for epoch 52
+    computing connectivity for epoch 53
+    computing connectivity for epoch 54
+    computing connectivity for epoch 55
+    computing connectivity for epoch 56
+    computing connectivity for epoch 57
+    computing connectivity for epoch 58
+    computing connectivity for epoch 59
+    computing connectivity for epoch 60
+    computing connectivity for epoch 61
+    computing connectivity for epoch 62
+    computing connectivity for epoch 63
+    computing connectivity for epoch 64
+    computing connectivity for epoch 65
+    computing connectivity for epoch 66
+    computing connectivity for epoch 67
+    computing connectivity for epoch 68
+    computing connectivity for epoch 69
+    computing connectivity for epoch 70
+    computing connectivity for epoch 71
+    computing connectivity for epoch 72
+    computing connectivity for epoch 73
+    computing connectivity for epoch 74
+    computing connectivity for epoch 75
+    computing connectivity for epoch 76
+    computing connectivity for epoch 77
+[Connectivity computation done]
+Connectivity computation...
+    computing connectivity for 298420 connections
+    using t=0.000s..1.992s for estimation (256 points)
+    frequencies: 8.0Hz..12.0Hz (9 points)
+    using FFT with a Hanning window to estimate spectra
+    the following metrics will be computed: Imaginary Coherence, ciPLV, WPLI
+    computing connectivity for epoch 1
+    computing connectivity for epoch 2
+    computing connectivity for epoch 3
+    computing connectivity for epoch 4
+    computing connectivity for epoch 5
+    computing connectivity for epoch 6
+    computing connectivity for epoch 7
+    computing connectivity for epoch 8
+    computing connectivity for epoch 9
+    computing connectivity for epoch 10
+    computing connectivity for epoch 11
+    computing connectivity for epoch 12
+    computing connectivity for epoch 13
+    computing connectivity for epoch 14
+    computing connectivity for epoch 15
+    computing connectivity for epoch 16
+    computing connectivity for epoch 17
+    computing connectivity for epoch 18
+    computing connectivity for epoch 19
+    computing connectivity for epoch 20
+    computing connectivity for epoch 21
+    computing connectivity for epoch 22
+    computing connectivity for epoch 23
+    computing connectivity for epoch 24
+    computing connectivity for epoch 25
+    computing connectivity for epoch 26
+    computing connectivity for epoch 27
+    computing connectivity for epoch 28
+    computing connectivity for epoch 29
+    computing connectivity for epoch 30
+    computing connectivity for epoch 31
+    computing connectivity for epoch 32
+    computing connectivity for epoch 33
+    computing connectivity for epoch 34
+    computing connectivity for epoch 35
+    computing connectivity for epoch 36
+    computing connectivity for epoch 37
+    computing connectivity for epoch 38
+    computing connectivity for epoch 39
+    computing connectivity for epoch 40
+    computing connectivity for epoch 41
+    computing connectivity for epoch 42
+    computing connectivity for epoch 43
+    computing connectivity for epoch 44
+    computing connectivity for epoch 45
+    computing connectivity for epoch 46
+    computing connectivity for epoch 47
+    computing connectivity for epoch 48
+    computing connectivity for epoch 49
+    computing connectivity for epoch 50
+    computing connectivity for epoch 51
+    computing connectivity for epoch 52
+    computing connectivity for epoch 53
+    computing connectivity for epoch 54
+    computing connectivity for epoch 55
+    computing connectivity for epoch 56
+    computing connectivity for epoch 57
+    computing connectivity for epoch 58
+    computing connectivity for epoch 59
+    computing connectivity for epoch 60
+    computing connectivity for epoch 61
+    computing connectivity for epoch 62
+    computing connectivity for epoch 63
+    computing connectivity for epoch 64
+    computing connectivity for epoch 65
+    computing connectivity for epoch 66
+    computing connectivity for epoch 67
+    computing connectivity for epoch 68
+    computing connectivity for epoch 69
+    computing connectivity for epoch 70
+    computing connectivity for epoch 71
+    computing connectivity for epoch 72
+    computing connectivity for epoch 73
+    computing connectivity for epoch 74
+    computing connectivity for epoch 75
+    computing connectivity for epoch 76
+    computing connectivity for epoch 77
+[Connectivity computation done]
+Connectivity computation...
+    computing connectivity for 298420 connections
+    using t=0.000s..1.992s for estimation (256 points)
+    frequencies: 8.0Hz..12.0Hz (9 points)
+    using FFT with a Hanning window to estimate spectra
+    the following metrics will be computed: Imaginary Coherence, ciPLV, WPLI
+    computing connectivity for epoch 1
+    computing connectivity for epoch 2
+    computing connectivity for epoch 3
+    computing connectivity for epoch 4
+    computing connectivity for epoch 5
+    computing connectivity for epoch 6
+    computing connectivity for epoch 7
+    computing connectivity for epoch 8
+    computing connectivity for epoch 9
+    computing connectivity for epoch 10
+    computing connectivity for epoch 11
+    computing connectivity for epoch 12
+    computing connectivity for epoch 13
+    computing connectivity for epoch 14
+    computing connectivity for epoch 15
+    computing connectivity for epoch 16
+    computing connectivity for epoch 17
+    computing connectivity for epoch 18
+    computing connectivity for epoch 19
+    computing connectivity for epoch 20
+    computing connectivity for epoch 21
+    computing connectivity for epoch 22
+    computing connectivity for epoch 23
+    computing connectivity for epoch 24
+    computing connectivity for epoch 25
+    computing connectivity for epoch 26
+    computing connectivity for epoch 27
+    computing connectivity for epoch 28
+    computing connectivity for epoch 29
+    computing connectivity for epoch 30
+    computing connectivity for epoch 31
+    computing connectivity for epoch 32
+    computing connectivity for epoch 33
+    computing connectivity for epoch 34
+    computing connectivity for epoch 35
+    computing connectivity for epoch 36
+    computing connectivity for epoch 37
+    computing connectivity for epoch 38
+    computing connectivity for epoch 39
+    computing connectivity for epoch 40
+    computing connectivity for epoch 41
+    computing connectivity for epoch 42
+    computing connectivity for epoch 43
+    computing connectivity for epoch 44
+    computing connectivity for epoch 45
+    computing connectivity for epoch 46
+    computing connectivity for epoch 47
+    computing connectivity for epoch 48
+    computing connectivity for epoch 49
+    computing connectivity for epoch 50
+    computing connectivity for epoch 51
+    computing connectivity for epoch 52
+    computing connectivity for epoch 53
+    computing connectivity for epoch 54
+    computing connectivity for epoch 55
+    computing connectivity for epoch 56
+    computing connectivity for epoch 57
+    computing connectivity for epoch 58
+    computing connectivity for epoch 59
+    computing connectivity for epoch 60
+    computing connectivity for epoch 61
+    computing connectivity for epoch 62
+    computing connectivity for epoch 63
+    computing connectivity for epoch 64
+    computing connectivity for epoch 65
+    computing connectivity for epoch 66
+    computing connectivity for epoch 67
+    computing connectivity for epoch 68
+    computing connectivity for epoch 69
+    computing connectivity for epoch 70
+    computing connectivity for epoch 71
+    computing connectivity for epoch 72
+    computing connectivity for epoch 73
+    computing connectivity for epoch 74
+    computing connectivity for epoch 75
+    computing connectivity for epoch 76
+    computing connectivity for epoch 77
+[Connectivity computation done]
+Connectivity computation...
+    computing connectivity for 298420 connections
+    using t=0.000s..1.992s for estimation (256 points)
+    frequencies: 8.0Hz..12.0Hz (9 points)
+    using FFT with a Hanning window to estimate spectra
+    the following metrics will be computed: Imaginary Coherence, ciPLV, WPLI
+    computing connectivity for epoch 1
+    computing connectivity for epoch 2
+    computing connectivity for epoch 3
+    computing connectivity for epoch 4
+    computing connectivity for epoch 5
+    computing connectivity for epoch 6
+    computing connectivity for epoch 7
+    computing connectivity for epoch 8
+    computing connectivity for epoch 9
+    computing connectivity for epoch 10
+    computing connectivity for epoch 11
+    computing connectivity for epoch 12
+    computing connectivity for epoch 13
+    computing connectivity for epoch 14
+    computing connectivity for epoch 15
+    computing connectivity for epoch 16
+    computing connectivity for epoch 17
+    computing connectivity for epoch 18
+    computing connectivity for epoch 19
+    computing connectivity for epoch 20
+    computing connectivity for epoch 21
+    computing connectivity for epoch 22
+    computing connectivity for epoch 23
+    computing connectivity for epoch 24
+    computing connectivity for epoch 25
+    computing connectivity for epoch 26
+    computing connectivity for epoch 27
+    computing connectivity for epoch 28
+    computing connectivity for epoch 29
+    computing connectivity for epoch 30
+    computing connectivity for epoch 31
+    computing connectivity for epoch 32
+    computing connectivity for epoch 33
+    computing connectivity for epoch 34
+    computing connectivity for epoch 35
+    computing connectivity for epoch 36
+    computing connectivity for epoch 37
+    computing connectivity for epoch 38
+    computing connectivity for epoch 39
+    computing connectivity for epoch 40
+    computing connectivity for epoch 41
+    computing connectivity for epoch 42
+    computing connectivity for epoch 43
+    computing connectivity for epoch 44
+    computing connectivity for epoch 45
+    computing connectivity for epoch 46
+    computing connectivity for epoch 47
+    computing connectivity for epoch 48
+    computing connectivity for epoch 49
+    computing connectivity for epoch 50
+    computing connectivity for epoch 51
+    computing connectivity for epoch 52
+    computing connectivity for epoch 53
+    computing connectivity for epoch 54
+    computing connectivity for epoch 55
+    computing connectivity for epoch 56
+    computing connectivity for epoch 57
+    computing connectivity for epoch 58
+    computing connectivity for epoch 59
+    computing connectivity for epoch 60
+    computing connectivity for epoch 61
+    computing connectivity for epoch 62
+    computing connectivity for epoch 63
+    computing connectivity for epoch 64
+    computing connectivity for epoch 65
+    computing connectivity for epoch 66
+    computing connectivity for epoch 67
+    computing connectivity for epoch 68
+    computing connectivity for epoch 69
+    computing connectivity for epoch 70
+    computing connectivity for epoch 71
+    computing connectivity for epoch 72
+    computing connectivity for epoch 73
+    computing connectivity for epoch 74
+    computing connectivity for epoch 75
+    computing connectivity for epoch 76
+    computing connectivity for epoch 77
+[Connectivity computation done]
+Connectivity computation...
+    computing connectivity for 298420 connections
+    using t=0.000s..1.992s for estimation (256 points)
+    frequencies: 8.0Hz..12.0Hz (9 points)
+    using FFT with a Hanning window to estimate spectra
+    the following metrics will be computed: Imaginary Coherence, ciPLV, WPLI
+    computing connectivity for epoch 1
+    computing connectivity for epoch 2
+    computing connectivity for epoch 3
+    computing connectivity for epoch 4
+    computing connectivity for epoch 5
+    computing connectivity for epoch 6
+    computing connectivity for epoch 7
+    computing connectivity for epoch 8
+    computing connectivity for epoch 9
+    computing connectivity for epoch 10
+    computing connectivity for epoch 11
+    computing connectivity for epoch 12
+    computing connectivity for epoch 13
+    computing connectivity for epoch 14
+    computing connectivity for epoch 15
+    computing connectivity for epoch 16
+    computing connectivity for epoch 17
+    computing connectivity for epoch 18
+    computing connectivity for epoch 19
+    computing connectivity for epoch 20
+    computing connectivity for epoch 21
+    computing connectivity for epoch 22
+    computing connectivity for epoch 23
+    computing connectivity for epoch 24
+    computing connectivity for epoch 25
+    computing connectivity for epoch 26
+    computing connectivity for epoch 27
+    computing connectivity for epoch 28
+    computing connectivity for epoch 29
+    computing connectivity for epoch 30
+    computing connectivity for epoch 31
+    computing connectivity for epoch 32
+    computing connectivity for epoch 33
+    computing connectivity for epoch 34
+    computing connectivity for epoch 35
+    computing connectivity for epoch 36
+    computing connectivity for epoch 37
+    computing connectivity for epoch 38
+    computing connectivity for epoch 39
+    computing connectivity for epoch 40
+    computing connectivity for epoch 41
+    computing connectivity for epoch 42
+    computing connectivity for epoch 43
+    computing connectivity for epoch 44
+    computing connectivity for epoch 45
+    computing connectivity for epoch 46
+    computing connectivity for epoch 47
+    computing connectivity for epoch 48
+    computing connectivity for epoch 49
+    computing connectivity for epoch 50
+    computing connectivity for epoch 51
+    computing connectivity for epoch 52
+    computing connectivity for epoch 53
+    computing connectivity for epoch 54
+    computing connectivity for epoch 55
+    computing connectivity for epoch 56
+    computing connectivity for epoch 57
+    computing connectivity for epoch 58
+    computing connectivity for epoch 59
+    computing connectivity for epoch 60
+    computing connectivity for epoch 61
+    computing connectivity for epoch 62
+    computing connectivity for epoch 63
+    computing connectivity for epoch 64
+    computing connectivity for epoch 65
+    computing connectivity for epoch 66
+    computing connectivity for epoch 67
+    computing connectivity for epoch 68
+    computing connectivity for epoch 69
+    computing connectivity for epoch 70
+    computing connectivity for epoch 71
+    computing connectivity for epoch 72
+    computing connectivity for epoch 73
+    computing connectivity for epoch 74
+    computing connectivity for epoch 75
+    computing connectivity for epoch 76
+    computing connectivity for epoch 77
+[Connectivity computation done]
+Connectivity computation...
+    computing connectivity for 298420 connections
+    using t=0.000s..1.992s for estimation (256 points)
+    frequencies: 8.0Hz..12.0Hz (9 points)
+    using FFT with a Hanning window to estimate spectra
+    the following metrics will be computed: Imaginary Coherence, ciPLV, WPLI
+    computing connectivity for epoch 1
+    computing connectivity for epoch 2
+    computing connectivity for epoch 3
+    computing connectivity for epoch 4
+    computing connectivity for epoch 5
+    computing connectivity for epoch 6
+    computing connectivity for epoch 7
+    computing connectivity for epoch 8
+    computing connectivity for epoch 9
+    computing connectivity for epoch 10
+    computing connectivity for epoch 11
+    computing connectivity for epoch 12
+    computing connectivity for epoch 13
+    computing connectivity for epoch 14
+    computing connectivity for epoch 15
+    computing connectivity for epoch 16
+    computing connectivity for epoch 17
+    computing connectivity for epoch 18
+    computing connectivity for epoch 19
+    computing connectivity for epoch 20
+    computing connectivity for epoch 21
+    computing connectivity for epoch 22
+    computing connectivity for epoch 23
+    computing connectivity for epoch 24
+    computing connectivity for epoch 25
+    computing connectivity for epoch 26
+    computing connectivity for epoch 27
+    computing connectivity for epoch 28
+    computing connectivity for epoch 29
+    computing connectivity for epoch 30
+    computing connectivity for epoch 31
+    computing connectivity for epoch 32
+    computing connectivity for epoch 33
+    computing connectivity for epoch 34
+    computing connectivity for epoch 35
+    computing connectivity for epoch 36
+    computing connectivity for epoch 37
+    computing connectivity for epoch 38
+    computing connectivity for epoch 39
+    computing connectivity for epoch 40
+    computing connectivity for epoch 41
+    computing connectivity for epoch 42
+    computing connectivity for epoch 43
+    computing connectivity for epoch 44
+    computing connectivity for epoch 45
+    computing connectivity for epoch 46
+    computing connectivity for epoch 47
+    computing connectivity for epoch 48
+    computing connectivity for epoch 49
+    computing connectivity for epoch 50
+    computing connectivity for epoch 51
+    computing connectivity for epoch 52
+    computing connectivity for epoch 53
+    computing connectivity for epoch 54
+    computing connectivity for epoch 55
+    computing connectivity for epoch 56
+    computing connectivity for epoch 57
+    computing connectivity for epoch 58
+    computing connectivity for epoch 59
+    computing connectivity for epoch 60
+    computing connectivity for epoch 61
+    computing connectivity for epoch 62
+    computing connectivity for epoch 63
+    computing connectivity for epoch 64
+    computing connectivity for epoch 65
+    computing connectivity for epoch 66
+    computing connectivity for epoch 67
+    computing connectivity for epoch 68
+    computing connectivity for epoch 69
+    computing connectivity for epoch 70
+    computing connectivity for epoch 71
+    computing connectivity for epoch 72
+    computing connectivity for epoch 73
+    computing connectivity for epoch 74
+    computing connectivity for epoch 75
+    computing connectivity for epoch 76
+    computing connectivity for epoch 77
+[Connectivity computation done]
+Connectivity computation...
+    computing connectivity for 298420 connections
+    using t=0.000s..1.992s for estimation (256 points)
+    frequencies: 8.0Hz..12.0Hz (9 points)
+    using FFT with a Hanning window to estimate spectra
+    the following metrics will be computed: Imaginary Coherence, ciPLV, WPLI
+    computing connectivity for epoch 1
+    computing connectivity for epoch 2
+    computing connectivity for epoch 3
+    computing connectivity for epoch 4
+    computing connectivity for epoch 5
+    computing connectivity for epoch 6
+    computing connectivity for epoch 7
+    computing connectivity for epoch 8
+    computing connectivity for epoch 9
+    computing connectivity for epoch 10
+    computing connectivity for epoch 11
+    computing connectivity for epoch 12
+    computing connectivity for epoch 13
+    computing connectivity for epoch 14
+    computing connectivity for epoch 15
+    computing connectivity for epoch 16
+    computing connectivity for epoch 17
+    computing connectivity for epoch 18
+    computing connectivity for epoch 19
+    computing connectivity for epoch 20
+    computing connectivity for epoch 21
+    computing connectivity for epoch 22
+    computing connectivity for epoch 23
+    computing connectivity for epoch 24
+    computing connectivity for epoch 25
+    computing connectivity for epoch 26
+    computing connectivity for epoch 27
+    computing connectivity for epoch 28
+    computing connectivity for epoch 29
+    computing connectivity for epoch 30
+    computing connectivity for epoch 31
+    computing connectivity for epoch 32
+    computing connectivity for epoch 33
+    computing connectivity for epoch 34
+    computing connectivity for epoch 35
+    computing connectivity for epoch 36
+    computing connectivity for epoch 37
+    computing connectivity for epoch 38
+    computing connectivity for epoch 39
+    computing connectivity for epoch 40
+    computing connectivity for epoch 41
+    computing connectivity for epoch 42
+    computing connectivity for epoch 43
+    computing connectivity for epoch 44
+    computing connectivity for epoch 45
+    computing connectivity for epoch 46
+    computing connectivity for epoch 47
+    computing connectivity for epoch 48
+    computing connectivity for epoch 49
+    computing connectivity for epoch 50
+    computing connectivity for epoch 51
+    computing connectivity for epoch 52
+    computing connectivity for epoch 53
+    computing connectivity for epoch 54
+    computing connectivity for epoch 55
+    computing connectivity for epoch 56
+    computing connectivity for epoch 57
+    computing connectivity for epoch 58
+    computing connectivity for epoch 59
+    computing connectivity for epoch 60
+    computing connectivity for epoch 61
+    computing connectivity for epoch 62
+    computing connectivity for epoch 63
+    computing connectivity for epoch 64
+    computing connectivity for epoch 65
+    computing connectivity for epoch 66
+    computing connectivity for epoch 67
+    computing connectivity for epoch 68
+    computing connectivity for epoch 69
+    computing connectivity for epoch 70
+    computing connectivity for epoch 71
+    computing connectivity for epoch 72
+    computing connectivity for epoch 73
+    computing connectivity for epoch 74
+    computing connectivity for epoch 75
+    computing connectivity for epoch 76
+    computing connectivity for epoch 77
+[Connectivity computation done]
+Connectivity computation...
+    computing connectivity for 298420 connections
+    using t=0.000s..1.992s for estimation (256 points)
+    frequencies: 8.0Hz..12.0Hz (9 points)
+    using FFT with a Hanning window to estimate spectra
+    the following metrics will be computed: Imaginary Coherence, ciPLV, WPLI
+    computing connectivity for epoch 1
+    computing connectivity for epoch 2
+    computing connectivity for epoch 3
+    computing connectivity for epoch 4
+    computing connectivity for epoch 5
+    computing connectivity for epoch 6
+    computing connectivity for epoch 7
+    computing connectivity for epoch 8
+    computing connectivity for epoch 9
+    computing connectivity for epoch 10
+    computing connectivity for epoch 11
+    computing connectivity for epoch 12
+    computing connectivity for epoch 13
+    computing connectivity for epoch 14
+    computing connectivity for epoch 15
+    computing connectivity for epoch 16
+    computing connectivity for epoch 17
+    computing connectivity for epoch 18
+    computing connectivity for epoch 19
+    computing connectivity for epoch 20
+    computing connectivity for epoch 21
+    computing connectivity for epoch 22
+    computing connectivity for epoch 23
+    computing connectivity for epoch 24
+    computing connectivity for epoch 25
+    computing connectivity for epoch 26
+    computing connectivity for epoch 27
+    computing connectivity for epoch 28
+    computing connectivity for epoch 29
+    computing connectivity for epoch 30
+    computing connectivity for epoch 31
+    computing connectivity for epoch 32
+    computing connectivity for epoch 33
+    computing connectivity for epoch 34
+    computing connectivity for epoch 35
+    computing connectivity for epoch 36
+    computing connectivity for epoch 37
+    computing connectivity for epoch 38
+    computing connectivity for epoch 39
+    computing connectivity for epoch 40
+    computing connectivity for epoch 41
+    computing connectivity for epoch 42
+    computing connectivity for epoch 43
+    computing connectivity for epoch 44
+    computing connectivity for epoch 45
+    computing connectivity for epoch 46
+    computing connectivity for epoch 47
+    computing connectivity for epoch 48
+    computing connectivity for epoch 49
+    computing connectivity for epoch 50
+    computing connectivity for epoch 51
+    computing connectivity for epoch 52
+    computing connectivity for epoch 53
+    computing connectivity for epoch 54
+    computing connectivity for epoch 55
+    computing connectivity for epoch 56
+    computing connectivity for epoch 57
+    computing connectivity for epoch 58
+    computing connectivity for epoch 59
+    computing connectivity for epoch 60
+    computing connectivity for epoch 61
+    computing connectivity for epoch 62
+    computing connectivity for epoch 63
+    computing connectivity for epoch 64
+    computing connectivity for epoch 65
+    computing connectivity for epoch 66
+    computing connectivity for epoch 67
+    computing connectivity for epoch 68
+    computing connectivity for epoch 69
+    computing connectivity for epoch 70
+    computing connectivity for epoch 71
+    computing connectivity for epoch 72
+    computing connectivity for epoch 73
+    computing connectivity for epoch 74
+    computing connectivity for epoch 75
+    computing connectivity for epoch 76
+    computing connectivity for epoch 77
+[Connectivity computation done]
+Connectivity computation...
+    computing connectivity for 298420 connections
+    using t=0.000s..1.992s for estimation (256 points)
+    frequencies: 8.0Hz..12.0Hz (9 points)
+    using FFT with a Hanning window to estimate spectra
+    the following metrics will be computed: Imaginary Coherence, ciPLV, WPLI
+    computing connectivity for epoch 1
+    computing connectivity for epoch 2
+    computing connectivity for epoch 3
+    computing connectivity for epoch 4
+    computing connectivity for epoch 5
+    computing connectivity for epoch 6
+    computing connectivity for epoch 7
+    computing connectivity for epoch 8
+    computing connectivity for epoch 9
+    computing connectivity for epoch 10
+    computing connectivity for epoch 11
+    computing connectivity for epoch 12
+    computing connectivity for epoch 13
+    computing connectivity for epoch 14
+    computing connectivity for epoch 15
+    computing connectivity for epoch 16
+    computing connectivity for epoch 17
+    computing connectivity for epoch 18
+    computing connectivity for epoch 19
+    computing connectivity for epoch 20
+    computing connectivity for epoch 21
+    computing connectivity for epoch 22
+    computing connectivity for epoch 23
+    computing connectivity for epoch 24
+    computing connectivity for epoch 25
+    computing connectivity for epoch 26
+    computing connectivity for epoch 27
+    computing connectivity for epoch 28
+    computing connectivity for epoch 29
+    computing connectivity for epoch 30
+    computing connectivity for epoch 31
+    computing connectivity for epoch 32
+    computing connectivity for epoch 33
+    computing connectivity for epoch 34
+    computing connectivity for epoch 35
+    computing connectivity for epoch 36
+    computing connectivity for epoch 37
+    computing connectivity for epoch 38
+    computing connectivity for epoch 39
+    computing connectivity for epoch 40
+    computing connectivity for epoch 41
+    computing connectivity for epoch 42
+    computing connectivity for epoch 43
+    computing connectivity for epoch 44
+    computing connectivity for epoch 45
+    computing connectivity for epoch 46
+    computing connectivity for epoch 47
+    computing connectivity for epoch 48
+    computing connectivity for epoch 49
+    computing connectivity for epoch 50
+    computing connectivity for epoch 51
+    computing connectivity for epoch 52
+    computing connectivity for epoch 53
+    computing connectivity for epoch 54
+    computing connectivity for epoch 55
+    computing connectivity for epoch 56
+    computing connectivity for epoch 57
+    computing connectivity for epoch 58
+    computing connectivity for epoch 59
+    computing connectivity for epoch 60
+    computing connectivity for epoch 61
+    computing connectivity for epoch 62
+    computing connectivity for epoch 63
+    computing connectivity for epoch 64
+    computing connectivity for epoch 65
+    computing connectivity for epoch 66
+    computing connectivity for epoch 67
+    computing connectivity for epoch 68
+    computing connectivity for epoch 69
+    computing connectivity for epoch 70
+    computing connectivity for epoch 71
+    computing connectivity for epoch 72
+    computing connectivity for epoch 73
+    computing connectivity for epoch 74
+    computing connectivity for epoch 75
+    computing connectivity for epoch 76
+    computing connectivity for epoch 77
+[Connectivity computation done]
+Connectivity computation...
+    computing connectivity for 298420 connections
+    using t=0.000s..1.992s for estimation (256 points)
+    frequencies: 8.0Hz..12.0Hz (9 points)
+    using FFT with a Hanning window to estimate spectra
+    the following metrics will be computed: Imaginary Coherence, ciPLV, WPLI
+    computing connectivity for epoch 1
+    computing connectivity for epoch 2
+    computing connectivity for epoch 3
+    computing connectivity for epoch 4
+    computing connectivity for epoch 5
+    computing connectivity for epoch 6
+    computing connectivity for epoch 7
+    computing connectivity for epoch 8
+    computing connectivity for epoch 9
+    computing connectivity for epoch 10
+    computing connectivity for epoch 11
+    computing connectivity for epoch 12
+    computing connectivity for epoch 13
+    computing connectivity for epoch 14
+    computing connectivity for epoch 15
+    computing connectivity for epoch 16
+    computing connectivity for epoch 17
+    computing connectivity for epoch 18
+    computing connectivity for epoch 19
+    computing connectivity for epoch 20
+    computing connectivity for epoch 21
+    computing connectivity for epoch 22
+    computing connectivity for epoch 23
+    computing connectivity for epoch 24
+    computing connectivity for epoch 25
+    computing connectivity for epoch 26
+    computing connectivity for epoch 27
+    computing connectivity for epoch 28
+    computing connectivity for epoch 29
+    computing connectivity for epoch 30
+    computing connectivity for epoch 31
+    computing connectivity for epoch 32
+    computing connectivity for epoch 33
+    computing connectivity for epoch 34
+    computing connectivity for epoch 35
+    computing connectivity for epoch 36
+    computing connectivity for epoch 37
+    computing connectivity for epoch 38
+    computing connectivity for epoch 39
+    computing connectivity for epoch 40
+    computing connectivity for epoch 41
+    computing connectivity for epoch 42
+    computing connectivity for epoch 43
+    computing connectivity for epoch 44
+    computing connectivity for epoch 45
+    computing connectivity for epoch 46
+    computing connectivity for epoch 47
+    computing connectivity for epoch 48
+    computing connectivity for epoch 49
+    computing connectivity for epoch 50
+    computing connectivity for epoch 51
+    computing connectivity for epoch 52
+    computing connectivity for epoch 53
+    computing connectivity for epoch 54
+    computing connectivity for epoch 55
+    computing connectivity for epoch 56
+    computing connectivity for epoch 57
+    computing connectivity for epoch 58
+    computing connectivity for epoch 59
+    computing connectivity for epoch 60
+    computing connectivity for epoch 61
+    computing connectivity for epoch 62
+    computing connectivity for epoch 63
+    computing connectivity for epoch 64
+    computing connectivity for epoch 65
+    computing connectivity for epoch 66
+    computing connectivity for epoch 67
+    computing connectivity for epoch 68
+    computing connectivity for epoch 69
+    computing connectivity for epoch 70
+    computing connectivity for epoch 71
+    computing connectivity for epoch 72
+    computing connectivity for epoch 73
+    computing connectivity for epoch 74
+    computing connectivity for epoch 75
+    computing connectivity for epoch 76
+    computing connectivity for epoch 77
+[Connectivity computation done]
+</pre></div>
+</div>
+<p>Store results</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;tc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lamX</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;conn&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">AUC_conn</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;conn&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">AUC_conn</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;conn&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">AUC_conn</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;conn&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">AUC_conn</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;TPF_conn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">TPF_conn</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;FPF_conn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">FPF_conn</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Plot results
+Warning: note that plot perspective might not be optimal, when downloading
+the codes plots are interavtive and perspectives can be changed</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># connectivity measures that can be plotted</span>
+<span class="n">conn_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Cross-power spectrum&#39;</span><span class="p">,</span> <span class="s1">&#39;imCoh&#39;</span><span class="p">,</span> <span class="s1">&#39;ciPLV&#39;</span><span class="p">,</span> <span class="s1">&#39;wPLI&#39;</span><span class="p">]</span>
+
+<span class="c1"># connectivity measure to plot (uncomment the one you wish to plot)</span>
+<span class="c1"># i_conn = 0  # cpsd</span>
+<span class="n">i_conn</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># imCoh</span>
+<span class="c1"># i_conn = 2  # ciplv</span>
+<span class="c1"># i_conn = 3  # wpli</span>
+
+<span class="c1"># regularization parameter for the selected connectivity meteric</span>
+<span class="n">lamC</span> <span class="o">=</span> <span class="n">lambdas</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">AUC_conn</span><span class="p">[:,</span> <span class="n">i_conn</span><span class="p">])]</span><span class="o">*</span><span class="n">lamX</span>
+
+<span class="c1"># estimated neural activity with the optimal parameters lamX and lamC</span>
+<span class="n">X_lamX</span> <span class="o">=</span> <span class="p">((</span><span class="n">G</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">+</span><span class="n">lamX</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">M</span><span class="p">))))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+<span class="n">X_lamC</span> <span class="o">=</span> <span class="p">((</span><span class="n">G</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">+</span><span class="n">lamC</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">M</span><span class="p">))))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Plot simulated and estimated neural activity (norm along time of the absolute
+value)
+Warning: note that plot perspective might not be optimal, when downloading
+the codes plots are interavtive and perspectives can be changed</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hemi</span> <span class="o">=</span> <span class="s1">&#39;both&#39;</span>
+<span class="c1"># plot simulated neural activty</span>
+<span class="n">stc</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">SourceEstimate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span>
+                         <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)),</span>
+                         <span class="n">vertices</span><span class="o">=</span><span class="n">vertno</span><span class="p">,</span> <span class="n">tmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">)</span>
+<span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Simulated neural activtiy&#39;</span>
+<span class="n">brain</span> <span class="o">=</span> <span class="n">stc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">surface</span><span class="o">=</span><span class="s1">&#39;inflated&#39;</span><span class="p">,</span> <span class="n">smoothing_steps</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                 <span class="n">views</span><span class="o">=</span><span class="n">view</span><span class="p">,</span> <span class="n">hemi</span><span class="o">=</span><span class="n">hemi</span><span class="p">,</span> <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subject_dir</span><span class="p">,</span>
+                 <span class="n">time_viewer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">brain</span><span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">brain</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># plot esimated neural activtiy (estimated using lamX)</span>
+<span class="n">stc</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">SourceEstimate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">X_lamX</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span>
+                         <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">X_lamX</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)),</span>
+                         <span class="n">vertices</span><span class="o">=</span><span class="n">vertno</span><span class="p">,</span> <span class="n">tmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">)</span>
+<span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Estimated  neural activtiy (using lam_X)&#39;</span>
+<span class="n">brain</span> <span class="o">=</span> <span class="n">stc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">surface</span><span class="o">=</span><span class="s1">&#39;inflated&#39;</span><span class="p">,</span> <span class="n">smoothing_steps</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                 <span class="n">views</span><span class="o">=</span><span class="n">view</span><span class="p">,</span> <span class="n">hemi</span><span class="o">=</span><span class="n">hemi</span><span class="p">,</span> <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subject_dir</span><span class="p">,</span>
+                 <span class="n">time_viewer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">brain</span><span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">brain</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># plot esimated neural activtiy  (estimated using lamC)</span>
+<span class="n">stc</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">SourceEstimate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">X_lamC</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span>
+                         <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">X_lamC</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)),</span>
+                         <span class="n">vertices</span><span class="o">=</span><span class="n">vertno</span><span class="p">,</span> <span class="n">tmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">)</span>
+<span class="n">title</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;Estimated neural activtiy (using lam_{&#39;</span><span class="o">+</span><span class="n">conn_names</span><span class="p">[</span><span class="n">i_conn</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;})&#39;</span>
+<span class="n">brain</span> <span class="o">=</span> <span class="n">stc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">surface</span><span class="o">=</span><span class="s1">&#39;inflated&#39;</span><span class="p">,</span> <span class="n">smoothing_steps</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                 <span class="n">views</span><span class="o">=</span><span class="n">view</span><span class="p">,</span> <span class="n">hemi</span><span class="o">=</span><span class="n">hemi</span><span class="p">,</span> <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subject_dir</span><span class="p">,</span>
+                 <span class="n">time_viewer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">brain</span><span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">brain</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="sphx-glr-horizontal">
+<li><img src="../_images/sphx_glr_plot_single_simulation_002.png" srcset="../_images/sphx_glr_plot_single_simulation_002.png" alt="plot single simulation" class = "sphx-glr-multi-img"/></li>
+<li><img src="../_images/sphx_glr_plot_single_simulation_003.png" srcset="../_images/sphx_glr_plot_single_simulation_003.png" alt="plot single simulation" class = "sphx-glr-multi-img"/></li>
+<li><img src="../_images/sphx_glr_plot_single_simulation_004.png" srcset="../_images/sphx_glr_plot_single_simulation_004.png" alt="plot single simulation" class = "sphx-glr-multi-img"/></li>
+</ul>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Using control points [0.08584372 0.12251911 0.7543848 ]
+Using control points [0.56483155 0.62229469 0.93866464]
+Using control points [0.64458285 0.69500395 0.96114625]
+</pre></div>
+</div>
+<p>Plot simulated connectivity and estimated connectivity with both lamX and
+lamC (norm along frequency of seed based conncctivity)
+Warning: note that plot perspective might not be optimal, when downloading
+the codes plots are interavtive and perspectives can be changed</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Compute true and estimated connectivity</span>
+
+<span class="n">conn_true</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p1_locs</span><span class="p">),</span> <span class="n">N_dense</span><span class="p">))</span>
+<span class="n">conn_lamC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p1_locs</span><span class="p">),</span> <span class="n">N_dense</span><span class="p">))</span>
+<span class="n">conn_lamX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">p1_locs</span><span class="p">),</span> <span class="n">N_dense</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">i_loc</span><span class="p">,</span> <span class="n">loc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">p1_locs</span><span class="p">):</span>
+    <span class="c1"># true connectivity</span>
+    <span class="n">f</span><span class="p">,</span> <span class="n">Connlam_row</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">csd</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">loc</span><span class="p">,</span> <span class="p">:],</span> <span class="n">X</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="s1">&#39;hann&#39;</span><span class="p">,</span>
+                                <span class="n">nperseg</span><span class="o">=</span><span class="n">nperseg</span><span class="p">,</span> <span class="n">noverlap</span><span class="o">=</span><span class="n">nperseg</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span>
+                                <span class="n">nfft</span><span class="o">=</span><span class="n">nfft</span><span class="p">,</span> <span class="n">detrend</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span>
+                                <span class="n">return_onesided</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scaling</span><span class="o">=</span><span class="s1">&#39;density&#39;</span><span class="p">,</span>
+                                <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">f_in</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">f</span> <span class="o">&gt;=</span> <span class="n">fmin</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">f</span> <span class="o">&lt;=</span> <span class="n">fmax</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">conn_true</span><span class="p">[</span><span class="n">i_loc</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">Connlam_row</span><span class="p">[:,</span> <span class="n">f_in</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># estimated connectivity (lamC)</span>
+    <span class="n">f</span><span class="p">,</span> <span class="n">Connlam_row</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">csd</span><span class="p">(</span><span class="n">X_lamC</span><span class="p">[</span><span class="n">loc</span><span class="p">,</span> <span class="p">:],</span> <span class="n">X_lamC</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="s1">&#39;hann&#39;</span><span class="p">,</span>
+                                <span class="n">nperseg</span><span class="o">=</span><span class="n">nperseg</span><span class="p">,</span> <span class="n">noverlap</span><span class="o">=</span><span class="n">nperseg</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span>
+                                <span class="n">nfft</span><span class="o">=</span><span class="n">nfft</span><span class="p">,</span> <span class="n">detrend</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span>
+                                <span class="n">return_onesided</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scaling</span><span class="o">=</span><span class="s1">&#39;density&#39;</span><span class="p">,</span>
+                                <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">f_in</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">f</span> <span class="o">&gt;=</span> <span class="n">fmin</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">f</span> <span class="o">&lt;=</span> <span class="n">fmax</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">conn_lamC</span><span class="p">[</span><span class="n">i_loc</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">Connlam_row</span><span class="p">[:,</span> <span class="n">f_in</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># estimated connectivity (lamX)</span>
+    <span class="n">f</span><span class="p">,</span> <span class="n">Connlam_row</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">csd</span><span class="p">(</span><span class="n">X_lamX</span><span class="p">[</span><span class="n">loc</span><span class="p">,</span> <span class="p">:],</span> <span class="n">X_lamX</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="s1">&#39;hann&#39;</span><span class="p">,</span>
+                                <span class="n">nperseg</span><span class="o">=</span><span class="n">nperseg</span><span class="p">,</span> <span class="n">noverlap</span><span class="o">=</span><span class="n">nperseg</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span>
+                                <span class="n">nfft</span><span class="o">=</span><span class="n">nfft</span><span class="p">,</span> <span class="n">detrend</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span>
+                                <span class="n">return_onesided</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scaling</span><span class="o">=</span><span class="s1">&#39;density&#39;</span><span class="p">,</span>
+                                <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">f_in</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">f</span> <span class="o">&gt;=</span> <span class="n">fmin</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">f</span> <span class="o">&lt;=</span> <span class="n">fmax</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">conn_lamX</span><span class="p">[</span><span class="n">i_loc</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">Connlam_row</span><span class="p">[:,</span> <span class="n">f_in</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="n">conn_true</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">conn_true</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">conn_lamX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">conn_lamX</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">conn_lamC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">conn_lamC</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="p">[</span><span class="n">conn_true</span><span class="p">,</span> <span class="n">conn_lamX</span><span class="p">,</span> <span class="n">conn_lamC</span><span class="p">]</span>
+
+
+<span class="c1"># plot simulate brain connectivity</span>
+<span class="n">stc</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">SourceEstimate</span><span class="p">(</span><span class="n">conn_true</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">conn_true</span><span class="p">),</span> <span class="n">vertices</span><span class="o">=</span><span class="n">vertno</span><span class="p">,</span> <span class="n">tmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">tstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">)</span>
+<span class="n">brain</span> <span class="o">=</span> <span class="n">stc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">surface</span><span class="o">=</span><span class="s1">&#39;inflated&#39;</span><span class="p">,</span> <span class="n">smoothing_steps</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                 <span class="n">hemi</span><span class="o">=</span><span class="n">hemi</span><span class="p">,</span> <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subject_dir</span><span class="p">,</span> <span class="n">time_viewer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">views</span><span class="o">=</span><span class="n">view</span><span class="p">)</span>
+<span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Simulated &#39;</span><span class="o">+</span><span class="n">conn_names</span><span class="p">[</span><span class="n">i_conn</span><span class="p">]</span>
+<span class="n">brain</span><span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">brain</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># plot estimated brain connectivity (estimated using lamX)</span>
+<span class="n">stc</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">SourceEstimate</span><span class="p">(</span><span class="n">conn_lamX</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">conn_lamX</span><span class="p">),</span> <span class="n">vertices</span><span class="o">=</span><span class="n">vertno</span><span class="p">,</span> <span class="n">tmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">tstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">)</span>
+<span class="n">brain</span> <span class="o">=</span> <span class="n">stc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">surface</span><span class="o">=</span><span class="s1">&#39;inflated&#39;</span><span class="p">,</span> <span class="n">smoothing_steps</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                 <span class="n">hemi</span><span class="o">=</span><span class="n">hemi</span><span class="p">,</span> <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subject_dir</span><span class="p">,</span> <span class="n">time_viewer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">views</span><span class="o">=</span><span class="n">view</span><span class="p">)</span>
+<span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Estimated &#39;</span> <span class="o">+</span> <span class="n">conn_names</span><span class="p">[</span><span class="n">i_conn</span><span class="p">]</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39; (with lam_</span><span class="si">{X}</span><span class="s1">)&#39;</span>
+<span class="n">brain</span><span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">brain</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># plot estimated brain connectivity (estimated using lamc)</span>
+<span class="n">stc</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">SourceEstimate</span><span class="p">(</span><span class="n">conn_lamC</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">conn_lamC</span><span class="p">),</span> <span class="n">vertices</span><span class="o">=</span><span class="n">vertno</span><span class="p">,</span> <span class="n">tmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">tstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">)</span>
+<span class="n">brain</span> <span class="o">=</span> <span class="n">stc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">surface</span><span class="o">=</span><span class="s1">&#39;inflated&#39;</span><span class="p">,</span> <span class="n">smoothing_steps</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                 <span class="n">hemi</span><span class="o">=</span><span class="n">hemi</span><span class="p">,</span> <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subject_dir</span><span class="p">,</span> <span class="n">time_viewer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">views</span><span class="o">=</span><span class="n">view</span><span class="p">)</span>
+<span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Estimated &#39;</span> <span class="o">+</span> <span class="n">conn_names</span><span class="p">[</span><span class="n">i_conn</span><span class="p">]</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39; (with lam_{&#39;</span> <span class="o">+</span> \
+        <span class="n">conn_names</span><span class="p">[</span><span class="n">i_conn</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;})&#39;</span>
+<span class="n">brain</span><span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">brain</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="sphx-glr-horizontal">
+<li><img src="../_images/sphx_glr_plot_single_simulation_005.png" srcset="../_images/sphx_glr_plot_single_simulation_005.png" alt="plot single simulation" class = "sphx-glr-multi-img"/></li>
+<li><img src="../_images/sphx_glr_plot_single_simulation_006.png" srcset="../_images/sphx_glr_plot_single_simulation_006.png" alt="plot single simulation" class = "sphx-glr-multi-img"/></li>
+<li><img src="../_images/sphx_glr_plot_single_simulation_007.png" srcset="../_images/sphx_glr_plot_single_simulation_007.png" alt="plot single simulation" class = "sphx-glr-multi-img"/></li>
+</ul>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Using control points [0.00162604 0.00233609 1.        ]
+Using control points [0.52588823 0.58516497 0.93286758]
+Using control points [0.62543007 0.68571702 0.9685291 ]
+</pre></div>
+</div>
+<p>Save data in a local folder</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Uncomment the lines below if you wish to save the results</span>
+
+
+<span class="c1"># save_path = op.join(&#39;.&#39;, &#39;results&#39;)</span>
+<span class="c1"># if not op.isdir(save_path):</span>
+<span class="c1">#    os.makedirs(save_path)</span>
+
+<span class="c1"># np.save(op.join(dir_path, &#39;parameters.npy&#39;), parameters)</span>
+<span class="c1"># np.save(op.join(dir_path, &#39;data.npy&#39;), data)</span>
+<span class="c1"># np.save(op.join(dir_path, &#39;features.npy&#39;), features)</span>
+<span class="c1"># np.save(op.join(dir_path, &#39;connectivity.npy&#39;), conn)</span>
+</pre></div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 66 minutes  0.137 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-single-simulation-plot-single-simulation-py">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/0afd4b6188f0bc164b48de0174217cfb/plot_single_simulation.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_single_simulation.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/f499c74bcd2742111454798bbc2088c9/plot_single_simulation.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_single_simulation.ipynb</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2022, Sara Sommariva Elisabetta Vallarino.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.3.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,8 +1,0 @@
-https://github.com/aaltoimaginglanguage/conpy/zipball/master
-matplotlib==3.5.1
-h5io
-mne
-mne_connectivity
-numpy==1.21.6
-pyvistaqt
-scipy==1.7.3

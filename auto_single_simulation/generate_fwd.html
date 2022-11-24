@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Generate forward &#8212; reg-connectivity 0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          reg-connectivity</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="index.html">Single simulation</a></li>
+                <li><a href="../auto_paper_results/index.html">Paper results</a></li>
+                <li><a href="../auto_paper_cluster/index.html">Run on cluster</a></li>
+                <li><a href="https://github.com/sarasommariva/regconnectivity">GitHub</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/auto_single_simulation/generate_fwd.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-auto-single-simulation-generate-fwd-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
+</div>
+<section class="sphx-glr-example-title" id="generate-forward">
+<span id="sphx-glr-auto-single-simulation-generate-fwd-py"></span><h1>Generate forward<a class="headerlink" href="#generate-forward" title="Permalink to this heading">¶</a></h1>
+<p>Compute forward and cortical distances</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">mne</span>
+<span class="kn">from</span> <span class="nn">mne.datasets</span> <span class="kn">import</span> <span class="n">sample</span>
+<span class="kn">from</span> <span class="nn">conpy</span> <span class="kn">import</span> <span class="n">restrict_forward_to_vertices</span>
+<span class="n">data_path</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">data_path</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Additional, self-implemented function</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">labels_to_array</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">type_index</span><span class="o">=</span><span class="s1">&#39;python&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Project MNE Label(s) to a given source-space and save as list of arrays</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    labels : list of Label</span>
+<span class="sd">        Label(s) to be projected</span>
+<span class="sd">    src : SourceSpaces</span>
+<span class="sd">        Source space</span>
+<span class="sd">    type_index : string [&#39;python&#39; | &#39;matlab&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="p">[</span><span class="n">lab</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">lab</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">]</span>
+    <span class="n">parcels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">total_vertx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;nuse&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">src</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;nuse&#39;</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">lab</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">lab</span><span class="o">.</span><span class="n">hemi</span> <span class="o">==</span> <span class="s1">&#39;lh&#39;</span><span class="p">:</span>
+            <span class="n">tmp_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;vertno&#39;</span><span class="p">],</span> <span class="n">lab</span><span class="o">.</span><span class="n">vertices</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">lab</span><span class="o">.</span><span class="n">hemi</span> <span class="o">==</span> <span class="s1">&#39;rh&#39;</span><span class="p">:</span>
+            <span class="n">tmp_idx</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;nuse&#39;</span><span class="p">]</span> <span class="o">+</span> \
+                <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;vertno&#39;</span><span class="p">],</span> <span class="n">lab</span><span class="o">.</span><span class="n">vertices</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">parcels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_idx</span><span class="p">)</span>
+        <span class="n">total_vertx</span><span class="p">[</span><span class="n">tmp_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">outliers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">total_vertx</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">outliers</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">parcels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outliers</span><span class="p">)</span>  <span class="c1"># For consistency with flame parcels</span>
+        <span class="n">name</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Outliers&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">type_index</span> <span class="o">==</span> <span class="s1">&#39;matlab&#39;</span><span class="p">:</span>
+        <span class="n">parcels</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">parcels</span><span class="p">)</span>
+        <span class="n">outliers</span> <span class="o">=</span> <span class="n">outliers</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">type_index</span> <span class="o">==</span> <span class="s1">&#39;python&#39;</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Type of indeces not understood&#39;</span><span class="p">)</span>
+
+    <span class="n">converted_labels</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;parcel&#39;</span><span class="p">:</span> <span class="n">parcels</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                        <span class="s1">&#39;outliers_id&#39;</span><span class="p">:</span> <span class="n">outliers</span><span class="p">,</span>
+                        <span class="s1">&#39;outliers&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">outliers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])}</span>
+
+    <span class="k">return</span> <span class="n">converted_labels</span>
+</pre></div>
+</div>
+<p>Load data from MNE sample dataset</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">subject</span> <span class="o">=</span> <span class="s1">&#39;sample&#39;</span>
+<span class="c1"># The raw file containing the channel location and types</span>
+<span class="n">raw_fname</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;MEG&#39;</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="s1">&#39;sample_audvis_raw.fif&#39;</span><span class="p">)</span>
+<span class="c1"># The paths to Freesurfer reconstructions</span>
+<span class="n">subjects_dir</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;subjects&#39;</span><span class="p">)</span>
+
+<span class="n">trans</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;MEG&#39;</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="s1">&#39;sample_audvis_raw-trans.fif&#39;</span><span class="p">)</span>
+
+<span class="n">info</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read_info</span><span class="p">(</span><span class="n">raw_fname</span><span class="p">)</span>
+
+<span class="n">src</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">setup_source_space</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="s1">&#39;oct6&#39;</span><span class="p">,</span> <span class="n">add_dist</span><span class="o">=</span><span class="s1">&#39;patch&#39;</span><span class="p">,</span>
+                             <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Compute forward solution</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conductivity</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.006</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>  <span class="c1"># for three layers</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">make_bem_model</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">,</span> <span class="n">ico</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">conductivity</span><span class="o">=</span><span class="n">conductivity</span><span class="p">,</span>
+                           <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">)</span>
+<span class="n">bem</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">make_bem_solution</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="n">fwd</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">make_forward_solution</span><span class="p">(</span><span class="n">raw_fname</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="n">trans</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="n">src</span><span class="p">,</span> <span class="n">bem</span><span class="o">=</span><span class="n">bem</span><span class="p">,</span>
+                                <span class="n">meg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eeg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mindist</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Remove anatomical outliers from fwd model</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define anatomical outliers</span>
+<span class="n">parc</span> <span class="o">=</span> <span class="s1">&#39;aparc&#39;</span>
+<span class="n">label_lh</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">read_labels_from_annot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">parc</span><span class="o">=</span><span class="n">parc</span><span class="p">,</span> <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;lh&#39;</span><span class="p">,</span>
+                                      <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">)</span>
+<span class="n">label_rh</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">read_labels_from_annot</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">parc</span><span class="o">=</span><span class="n">parc</span><span class="p">,</span> <span class="n">hemi</span><span class="o">=</span><span class="s1">&#39;rh&#39;</span><span class="p">,</span>
+                                      <span class="n">subjects_dir</span><span class="o">=</span><span class="n">subjects_dir</span><span class="p">)</span>
+<span class="n">label</span> <span class="o">=</span> <span class="n">label_lh</span> <span class="o">+</span> <span class="n">label_rh</span>
+
+<span class="n">anat_array</span> <span class="o">=</span> <span class="n">labels_to_array</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">],</span> <span class="n">type_index</span><span class="o">=</span><span class="s1">&#39;python&#39;</span><span class="p">)</span>
+<span class="n">anat_outliers</span> <span class="o">=</span> <span class="n">anat_array</span><span class="p">[</span><span class="s1">&#39;outliers_id&#39;</span><span class="p">]</span>
+
+<span class="n">nv_lh</span> <span class="o">=</span> <span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;nuse&#39;</span><span class="p">]</span>
+<span class="n">out_lh</span> <span class="o">=</span> <span class="n">anat_outliers</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">anat_outliers</span> <span class="o">&lt;</span> <span class="n">nv_lh</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span>
+<span class="n">out_rh</span> <span class="o">=</span> <span class="n">anat_outliers</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">anat_outliers</span> <span class="o">&gt;=</span> <span class="n">nv_lh</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">-</span> <span class="n">nv_lh</span>
+
+<span class="n">sel_vert_lh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;vertno&#39;</span><span class="p">],</span> <span class="n">out_lh</span><span class="p">)</span>
+<span class="n">sel_vert_rh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">fwd</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;vertno&#39;</span><span class="p">],</span> <span class="n">out_rh</span><span class="p">)</span>
+
+<span class="n">fwd_sel</span> <span class="o">=</span> <span class="n">restrict_forward_to_vertices</span><span class="p">(</span><span class="n">fwd</span><span class="p">,</span> <span class="p">(</span><span class="n">sel_vert_lh</span><span class="p">,</span> <span class="n">sel_vert_rh</span><span class="p">),</span>
+                                       <span class="n">check_vertno</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                       <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Set fixed orientations</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fwd_fixed</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">convert_forward_solution</span><span class="p">(</span><span class="n">fwd_sel</span><span class="p">,</span> <span class="n">surf_ori</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                         <span class="n">force_fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_cps</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Compute cortical distances</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">src_fixed</span> <span class="o">=</span> <span class="n">fwd_fixed</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">]</span>
+<span class="n">mne</span><span class="o">.</span><span class="n">add_source_space_distances</span><span class="p">(</span><span class="n">src_fixed</span><span class="p">)</span>
+
+<span class="n">lh_idx</span> <span class="o">=</span> <span class="n">fwd_fixed</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;vertno&#39;</span><span class="p">]</span>
+<span class="n">rh_idx</span> <span class="o">=</span> <span class="n">fwd_fixed</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;vertno&#39;</span><span class="p">]</span>
+<span class="n">cortical_dist_lh</span> <span class="o">=</span> <span class="n">src_fixed</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;dist&#39;</span><span class="p">][</span><span class="n">lh_idx</span><span class="p">,</span> <span class="p">:][:,</span> <span class="n">lh_idx</span><span class="p">]</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span>
+<span class="n">cortical_dist_rh</span> <span class="o">=</span> <span class="n">src_fixed</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;dist&#39;</span><span class="p">][</span><span class="n">rh_idx</span><span class="p">,</span> <span class="p">:][:,</span> <span class="n">rh_idx</span><span class="p">]</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span>
+<span class="n">cortical_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">cortical_dist_lh</span><span class="p">,</span>
+                               <span class="mi">10</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">lh_idx</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">rh_idx</span><span class="p">)))),</span>
+                               <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="mi">10</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span>
+                               <span class="nb">len</span><span class="p">(</span><span class="n">rh_idx</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">lh_idx</span><span class="p">))),</span> <span class="n">cortical_dist_rh</span><span class="p">),</span>
+                               <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Save forward and cortical distances
+(uncomment if you wish to save data)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># save_data_path = op.join(&#39;..&#39;, &#39;data&#39;)</span>
+<span class="c1"># if not op.exists(save_data_path):</span>
+<span class="c1">#     os.mkdir(save_data_path)</span>
+
+<span class="c1"># fwd_fname = op.join(save_data_path, &#39;oct6_fwd.fif&#39;)</span>
+<span class="c1"># mne.write_forward_solution(fwd_fname, fwd_fixed, overwrite=True)</span>
+<span class="c1"># cort_dist_fname = op.join(save_data_path, &#39;cortico_dist_oct6.npy&#39;)</span>
+<span class="c1"># np.save(cort_dist_fname, cortical_dist)</span>
+</pre></div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.000 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-single-simulation-generate-fwd-py">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/5b21febaabac0fec587066c1be806b29/generate_fwd.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">generate_fwd.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/344b3bbe0cdb07060239dca457de4893/generate_fwd.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">generate_fwd.ipynb</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2022, Sara Sommariva Elisabetta Vallarino.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.3.0.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
