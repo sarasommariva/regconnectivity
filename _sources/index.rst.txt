@@ -9,25 +9,27 @@ Welcome to the documentation of regconnectivity, a set of codes for simulating r
 
 A detailed description of the simulation pipeline can be found in the original paper [1]_.
 
+.. image:: fig_pipeline.png
+
 
 Download
-========
+--------
 All codes can be freely downloaded from the `github page <https://github.com/theMIDAgroup/regconnectivity>`_. 
 
 
 Bug reports
-===========
+-----------
 
 To report bugs, please use the `github issue tracker <https://github.com/theMIDAgroup/regconnectivity/issues>`_ .
 
 
 Authors of the codes
-====================
+--------------------
 | Sara Sommariva <sommariva@dima.unige.it>,
 | Elisabetta Vallarino <vallarino@dima.unige.it>.
 
 Cite our work
-=============
+-------------
 
 If you use this code in your project, please consider citing our work:
 
@@ -41,7 +43,7 @@ If you use this code in your project, please consider citing our work:
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
