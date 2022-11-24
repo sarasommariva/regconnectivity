@@ -14,6 +14,16 @@ Download
 --------
 All codes can be freely downloaded from the `github page <https://github.com/theMIDAgroup/regconnectivity>`_. 
 
+
+
+Cite our work
+-------------
+
+If you use this code in your project, please consider citing our work:
+
+.. [1] refer to the paper
+
+
 .. image:: fig_pipeline.png
   :width: 400
 
@@ -30,12 +40,6 @@ Authors of the codes
 | Sara Sommariva <sommariva@dima.unige.it>,
 | Elisabetta Vallarino <vallarino@dima.unige.it>.
 
-Cite our work
--------------
-
-If you use this code in your project, please consider citing our work:
-
-.. [1] refer to the paper
 
 
 .. toctree::
