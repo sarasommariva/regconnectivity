@@ -3,9 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Regconnectivity
+reg-connectivity
 ===============
-Welcome to the documentation of regconnectivity, a set of codes for simulating realistic brain activity and the corresponding MEG sensor level recordings, and for computing the optimal regularisation parameters for the Minimum Norm Estimate (MNE) of brain activity and for the susequent connectivity estimation.
+Welcome to the documentation of reg-connectivity, a set of codes for simulating realistic brain activity and the corresponding MEG sensor level recordings, and for computing the optimal regularisation parameters for the Minimum Norm Estimate (MNE) of brain activity and for the subsequent connectivity estimation.
 
 A detailed description of the simulation pipeline can be found in the original paper [1]_.
 
