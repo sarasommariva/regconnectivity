@@ -174,7 +174,7 @@ hemi = 'both'
 subject_dir = op.join(mne.datasets.sample.data_path(), 'subjects')
 subject = 'sample'
 
-clim = {'kind': 'value', 'lims': [0.5, 0.6, 1]}
+clim = {'kind': 'value', 'lims': [0.5, 0.75, 1]}
 roll = 0
 
 views = 'axial'
@@ -267,7 +267,7 @@ cps_true = connectivity['conn_true'][:, :, 0]
 cps_lam_cps = connectivity['conn_lamC'][:, :, 0]
 cps_lamX = connectivity['conn_lamX'][:, :, 0]
 
-clim = {'kind': 'value', 'lims': [0.20, 0.25, 1]}
+clim = {'kind': 'value', 'lims': [0.20, 0.6, 1]}
 
 # Plot true cross-power spectrum
 stc = mne.SourceEstimate(np.mean(cps_true, axis=0) /
@@ -340,7 +340,7 @@ wpli_true = connectivity['conn_true'][:, :, 3]
 wpli_lam_wpli = connectivity['conn_lamC'][:, :, 3]
 wpli_lamX = connectivity['conn_lamX'][:, :, 3]
 
-clim = {'kind': 'value', 'lims': [0.60, 0.7, 1]}
+clim = {'kind': 'value', 'lims': [0.60, 0.8, 1]}
 
 # Plot true wPLI
 stc = mne.SourceEstimate(np.mean(wpli_true, axis=0) /
@@ -412,7 +412,7 @@ imcoh_true = connectivity['conn_true'][:, :, 1]
 imcoh_lam_imcoh = connectivity['conn_lamC'][:, :, 1]
 imcoh_lamX = connectivity['conn_lamX'][:, :, 1]
 
-clim = {'kind': 'value', 'lims': [0.60, 0.7, 1]}
+clim = {'kind': 'value', 'lims': [0.60, 0.8, 1]}
 
 # Plot true imCOH
 stc = mne.SourceEstimate(np.mean(imcoh_true, axis=0) /
@@ -484,7 +484,7 @@ ciplv_true = connectivity['conn_true'][:, :, 1]
 ciplv_lam_ciplv = connectivity['conn_lamC'][:, :, 1]
 ciplv_lamX = connectivity['conn_lamX'][:, :, 1]
 
-clim = {'kind': 'value', 'lims': [0.60, 0.7, 1]}
+clim = {'kind': 'value', 'lims': [0.60, 0.8, 1]}
 
 # Plot true ciPLV
 stc = mne.SourceEstimate(np.mean(ciplv_true, axis=0) /

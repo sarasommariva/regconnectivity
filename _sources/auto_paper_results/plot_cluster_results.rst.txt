@@ -269,7 +269,7 @@ scale for the colorbar in each panel.
  .. code-block:: none
 
 
-    <matplotlib.colorbar.Colorbar object at 0x7fa134100b90>
+    <matplotlib.colorbar.Colorbar object at 0x7ffa9e463690>
 
 
 
@@ -624,7 +624,7 @@ Impact of biological background noise.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  54.149 seconds)
+   **Total running time of the script:** ( 0 minutes  4.238 seconds)
 
 
 .. _sphx_glr_download_auto_paper_results_plot_cluster_results.py:

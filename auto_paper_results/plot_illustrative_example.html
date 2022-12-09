@@ -269,7 +269,7 @@ in the paper</p>
 <span class="n">subject_dir</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mne</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">data_path</span><span class="p">(),</span> <span class="s1">&#39;subjects&#39;</span><span class="p">)</span>
 <span class="n">subject</span> <span class="o">=</span> <span class="s1">&#39;sample&#39;</span>
 
-<span class="n">clim</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;lims&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mi">1</span><span class="p">]}</span>
+<span class="n">clim</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;lims&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mi">1</span><span class="p">]}</span>
 <span class="n">roll</span> <span class="o">=</span> <span class="mi">0</span>
 
 <span class="n">views</span> <span class="o">=</span> <span class="s1">&#39;axial&#39;</span>
@@ -357,12 +357,15 @@ in the paper</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_illustrative_example_001.png" srcset="../_images/sphx_glr_plot_illustrative_example_001.png" alt="Neural activity, True, $\lambda_{{X}}$, $\lambda_{{CPS}}$, $\lambda_{{wPLI}}$" class = "sphx-glr-single-img"/><p>Plot cross-power spectrum</p>
+<img src="../_images/sphx_glr_plot_illustrative_example_001.png" srcset="../_images/sphx_glr_plot_illustrative_example_001.png" alt="Neural activity, True, $\lambda_{{X}}$, $\lambda_{{CPS}}$, $\lambda_{{wPLI}}$" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Using pyvistaqt 3d backend.
+</pre></div>
+</div>
+<p>Plot cross-power spectrum</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cps_true</span> <span class="o">=</span> <span class="n">connectivity</span><span class="p">[</span><span class="s1">&#39;conn_true&#39;</span><span class="p">][:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
 <span class="n">cps_lam_cps</span> <span class="o">=</span> <span class="n">connectivity</span><span class="p">[</span><span class="s1">&#39;conn_lamC&#39;</span><span class="p">][:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
 <span class="n">cps_lamX</span> <span class="o">=</span> <span class="n">connectivity</span><span class="p">[</span><span class="s1">&#39;conn_lamX&#39;</span><span class="p">][:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
 
-<span class="n">clim</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;lims&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.20</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mi">1</span><span class="p">]}</span>
+<span class="n">clim</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;lims&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.20</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mi">1</span><span class="p">]}</span>
 
 <span class="c1"># Plot true cross-power spectrum</span>
 <span class="n">stc</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">SourceEstimate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">cps_true</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span>
@@ -434,7 +437,7 @@ in the paper</p>
 <span class="n">wpli_lam_wpli</span> <span class="o">=</span> <span class="n">connectivity</span><span class="p">[</span><span class="s1">&#39;conn_lamC&#39;</span><span class="p">][:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span>
 <span class="n">wpli_lamX</span> <span class="o">=</span> <span class="n">connectivity</span><span class="p">[</span><span class="s1">&#39;conn_lamX&#39;</span><span class="p">][:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span>
 
-<span class="n">clim</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;lims&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.60</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mi">1</span><span class="p">]}</span>
+<span class="n">clim</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;lims&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.60</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mi">1</span><span class="p">]}</span>
 
 <span class="c1"># Plot true wPLI</span>
 <span class="n">stc</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">SourceEstimate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">wpli_true</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span>
@@ -506,7 +509,7 @@ in the paper</p>
 <span class="n">imcoh_lam_imcoh</span> <span class="o">=</span> <span class="n">connectivity</span><span class="p">[</span><span class="s1">&#39;conn_lamC&#39;</span><span class="p">][:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span>
 <span class="n">imcoh_lamX</span> <span class="o">=</span> <span class="n">connectivity</span><span class="p">[</span><span class="s1">&#39;conn_lamX&#39;</span><span class="p">][:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span>
 
-<span class="n">clim</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;lims&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.60</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mi">1</span><span class="p">]}</span>
+<span class="n">clim</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;lims&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.60</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mi">1</span><span class="p">]}</span>
 
 <span class="c1"># Plot true imCOH</span>
 <span class="n">stc</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">SourceEstimate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">imcoh_true</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span>
@@ -578,7 +581,7 @@ in the paper</p>
 <span class="n">ciplv_lam_ciplv</span> <span class="o">=</span> <span class="n">connectivity</span><span class="p">[</span><span class="s1">&#39;conn_lamC&#39;</span><span class="p">][:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span>
 <span class="n">ciplv_lamX</span> <span class="o">=</span> <span class="n">connectivity</span><span class="p">[</span><span class="s1">&#39;conn_lamX&#39;</span><span class="p">][:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span>
 
-<span class="n">clim</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;lims&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.60</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mi">1</span><span class="p">]}</span>
+<span class="n">clim</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;lims&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.60</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mi">1</span><span class="p">]}</span>
 
 <span class="c1"># Plot true ciPLV</span>
 <span class="n">stc</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">SourceEstimate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ciplv_true</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span>
@@ -645,7 +648,7 @@ in the paper</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_illustrative_example_005.png" srcset="../_images/sphx_glr_plot_illustrative_example_005.png" alt="Corrected imaginary part of phase locking value , True, $\lambda_{{X}}$, $\lambda_{{ciPLV}}$" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 9 minutes  7.155 seconds)</p>
+<img src="../_images/sphx_glr_plot_illustrative_example_005.png" srcset="../_images/sphx_glr_plot_illustrative_example_005.png" alt="Corrected imaginary part of phase locking value , True, $\lambda_{{X}}$, $\lambda_{{ciPLV}}$" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  30.724 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-paper-results-plot-illustrative-example-py">
 <div class="sphx-glr-download sphx-glr-download-python docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/873b38e0a4fc335c0de10ebcd0d0b9d2/plot_illustrative_example.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_illustrative_example.py</span></code></a></p>

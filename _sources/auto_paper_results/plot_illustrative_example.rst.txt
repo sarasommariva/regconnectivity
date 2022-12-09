@@ -281,7 +281,7 @@ Plot neural activity
     subject_dir = op.join(mne.datasets.sample.data_path(), 'subjects')
     subject = 'sample'
 
-    clim = {'kind': 'value', 'lims': [0.5, 0.6, 1]}
+    clim = {'kind': 'value', 'lims': [0.5, 0.75, 1]}
     roll = 0
 
     views = 'axial'
@@ -377,6 +377,13 @@ Plot neural activity
    :class: sphx-glr-single-img
 
 
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    Using pyvistaqt 3d backend.
+
+
 
 
 
@@ -392,7 +399,7 @@ Plot cross-power spectrum
     cps_lam_cps = connectivity['conn_lamC'][:, :, 0]
     cps_lamX = connectivity['conn_lamX'][:, :, 0]
 
-    clim = {'kind': 'value', 'lims': [0.20, 0.25, 1]}
+    clim = {'kind': 'value', 'lims': [0.20, 0.6, 1]}
 
     # Plot true cross-power spectrum
     stc = mne.SourceEstimate(np.mean(cps_true, axis=0) /
@@ -483,7 +490,7 @@ Plot wPLI
     wpli_lam_wpli = connectivity['conn_lamC'][:, :, 3]
     wpli_lamX = connectivity['conn_lamX'][:, :, 3]
 
-    clim = {'kind': 'value', 'lims': [0.60, 0.7, 1]}
+    clim = {'kind': 'value', 'lims': [0.60, 0.8, 1]}
 
     # Plot true wPLI
     stc = mne.SourceEstimate(np.mean(wpli_true, axis=0) /
@@ -573,7 +580,7 @@ Plot imCOH
     imcoh_lam_imcoh = connectivity['conn_lamC'][:, :, 1]
     imcoh_lamX = connectivity['conn_lamX'][:, :, 1]
 
-    clim = {'kind': 'value', 'lims': [0.60, 0.7, 1]}
+    clim = {'kind': 'value', 'lims': [0.60, 0.8, 1]}
 
     # Plot true imCOH
     stc = mne.SourceEstimate(np.mean(imcoh_true, axis=0) /
@@ -663,7 +670,7 @@ Plot ciPLV
     ciplv_lam_ciplv = connectivity['conn_lamC'][:, :, 1]
     ciplv_lamX = connectivity['conn_lamX'][:, :, 1]
 
-    clim = {'kind': 'value', 'lims': [0.60, 0.7, 1]}
+    clim = {'kind': 'value', 'lims': [0.60, 0.8, 1]}
 
     # Plot true ciPLV
     stc = mne.SourceEstimate(np.mean(ciplv_true, axis=0) /
@@ -743,7 +750,7 @@ Plot ciPLV
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 9 minutes  7.155 seconds)
+   **Total running time of the script:** ( 0 minutes  30.724 seconds)
 
 
 .. _sphx_glr_download_auto_paper_results_plot_illustrative_example.py:
